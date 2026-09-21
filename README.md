@@ -390,10 +390,13 @@ node --expose-gc scripts/verify-real-file.mjs "/path/to/export.json"
 ```
 
 To get a large file for browser testing without touching real data, generate a
-shape-identical fixture. `test/fixtures/shape.json` records only table names,
-column names and column types — no values were taken from the real file. The
-generator reproduces the awkward parts of the real encoding (UTF-8 BOM, CRLF,
-tab-before-comma, a few characters above U+00FF that force a two-byte string):
+shape-identical fixture. `test/fixtures/shape.json` carries the *structure*
+only — how many tables, how many records in each, how many columns and of which
+types. Table and column names are neutral placeholders, kept at the real names'
+lengths so the generated file keeps its size, and no value was ever taken from
+the real file. The generator reproduces the awkward parts of the real encoding
+(UTF-8 BOM, CRLF, tab-before-comma, a few characters above U+00FF that force a
+two-byte string):
 
 ```bash
 node test/fixtures/gen-large.mjs public/fixtures/large.json
