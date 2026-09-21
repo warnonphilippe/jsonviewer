@@ -8,6 +8,10 @@
 
 # Node
 /node_modules
+
+# Le lockfile n'est pas suivi, mais il reste requis en local : `npm ci`
+# (start.sh) et le `docker build` (Dockerfile) s'appuient dessus.
+package-lock.json
 npm-debug.log
 yarn-error.log
 

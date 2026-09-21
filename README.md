@@ -366,18 +366,13 @@ Docker Hub under `pwarnon` (a `docker login` is required first):
 ./deploy.sh 1.1.1    # :1.1.1 and :latest
 ```
 
-The build resolves dependencies from the public npm registry rather than the
-private npm mirror the lockfile records, so it works off-VPN and without
-credentials — same versions, same `integrity` hashes, different mirror. The
-59 MB fixture in `public/fixtures/` is excluded by `.dockerignore`, as is
-`docs/`; the image serves 252 KB.
+The build resolves every dependency from the public npm registry, so it needs
+no private mirror and no credentials — the versions and `integrity` hashes are
+the lockfile's. The 59 MB fixture in `public/fixtures/` is excluded by
+`.dockerignore`, as is `docs/`; the image serves 252 KB.
 
-The same image is mounted by the compose-stack stack on port **5176**
-(`src/main/docker/json-viewer/json-viewer.yml`):
-
-```bash
-cd ../compose-stack/src/main/docker && docker compose up -d json-viewer
-```
+The image is also meant to be mounted by a wider `docker compose` stack, which
+is why the examples above map it to port **5176**.
 
 ### Checking against a real large file
 
