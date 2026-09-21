@@ -363,7 +363,7 @@ Docker Hub under `pwarnon` (a `docker login` is required first):
 
 ```bash
 ./deploy.sh          # pwarnon/json-viewer:latest
-./deploy.sh 1.1.0    # :1.1.0 and :latest
+./deploy.sh 1.1.1    # :1.1.1 and :latest
 ```
 
 The build resolves dependencies from the public npm registry rather than the
