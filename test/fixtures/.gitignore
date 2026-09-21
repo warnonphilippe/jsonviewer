@@ -1,0 +1,7 @@
+# Nothing generated, copied or dropped here reaches git. A real export landing
+# in this directory is exactly how a real schema ends up in a public
+# repository, so the default is to ignore, and the two sources are named.
+*
+!.gitignore
+!gen-large.mjs
+!shape.json
