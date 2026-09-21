@@ -381,8 +381,9 @@ cd ../compose-stack/src/main/docker && docker compose up -d json-viewer
 
 ### Checking against a real large file
 
-The reference export is **not** in this repository: it has no business in git. Point the verification script at it by path instead.
-It checks every performance budget above and every structural invariant:
+The reference export is **not** in this repository: it has no business in git. Point the verification script at it by path
+instead. It checks every performance budget above and every structural
+invariant:
 
 ```bash
 node --expose-gc scripts/verify-real-file.mjs "/path/to/export.json"

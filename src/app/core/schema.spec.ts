@@ -117,7 +117,7 @@ describe('buildSchema', () => {
   });
 
   it('reflects the real export shape', () => {
-    // A miniature of the reference export: root object of tables.
+    // A miniature of the reference export: a root object of tables.
     const doc = {
       t_one: [{ id: 1, uuid: '' }, { id: 2, uuid: '' }],
       t_two: [{ id: 1, modele_id: null }],
