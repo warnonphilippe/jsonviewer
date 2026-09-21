@@ -1,0 +1,193 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 10px;
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.mark {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font: 700 var(--fs-md) / 1 var(--font-mono);
+  color: var(--accent);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.wordmark {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* --- the open file chip -------------------------------------------------- */
+
+.file-chip {
+  min-width: 0;
+}
+
+.file-name {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.file-format {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.chip-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chip-close:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+/* --- open button --------------------------------------------------------- */
+
+.open-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  padding: 0 14px;
+  font: 600 var(--fs-md) / 1 var(--font-ui);
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+/* Once a file is open, opening another is a secondary action. */
+.open-button.is-compact {
+  width: 27px;
+  padding: 0;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  border-color: var(--border);
+}
+
+.open-button.is-compact:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.open-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.open-button:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- search -------------------------------------------------------------- */
+
+.search {
+  flex: 1 1 auto;
+  min-width: 220px;
+  max-width: 460px;
+}
+
+.search-summary {
+  flex: 0 0 auto;
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.field-button {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.field-button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.field-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 960px) {
+  .file-name {
+    max-width: 16ch;
+  }
+
+  .file-format,
+  .file-size {
+    display: none;
+  }
+}

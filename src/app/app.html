@@ -1,139 +1,22 @@
 <div class="shell">
-  <header class="toolbar">
-    <label class="open-button">
-      <input
-        type="file"
-        accept=".json,.ndjson,.jsonl,.jsonlines,application/json,text/json,application/x-ndjson"
-        (change)="onFileInput($event)"
-      />
-      Open file&hellip;
-    </label>
+  <app-toolbar
+    (openFile)="open($event)"
+    (closeFile)="close()"
+    (showShortcuts)="shortcutsOpen.set(true)"
+  />
 
-    @if (doc.hasDocument()) {
-      <div class="tabs" role="tablist" aria-label="View">
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="store.view() === 'data'"
-          [class.is-active]="store.view() === 'data'"
-          (click)="setView('data')"
-        >
-          Data
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="store.view() === 'structure'"
-          [class.is-active]="store.view() === 'structure'"
-          (click)="setView('structure')"
-        >
-          Structure
-        </button>
-      </div>
-
-      <div class="group">
-        <button type="button" (click)="store.collapseAll()" title="Collapse everything">
-          Collapse all
-        </button>
-        <button type="button" (click)="store.expandToDepth(1)" title="Open the top level only">
-          Depth 1
-        </button>
-        <button type="button" (click)="store.expandToDepth(2)">Depth 2</button>
-        <button type="button" (click)="store.expandAll()" title="Open everything (capped)">
-          Expand all
-        </button>
-      </div>
-
-      <div class="group">
-        <button type="button" (click)="openSearch()" title="Find (Ctrl+F)">Find</button>
-        <button
-          type="button"
-          (click)="jump()"
-          [disabled]="store.focusIndex() < 0"
-          title="Show the focused row in the other view (j)"
-        >
-          {{ store.view() === 'data' ? 'Show structure' : 'Show data' }}
-        </button>
-      </div>
-
-      <div class="group">
-        <button
-          type="button"
-          (click)="copyAccessor()"
-          [disabled]="store.focusIndex() < 0"
-          title="Copy the path of the focused row"
-        >
-          Copy path
-        </button>
-        <button type="button" (click)="copyPointer()" [disabled]="store.focusIndex() < 0">
-          Copy pointer
-        </button>
-        <button type="button" (click)="copySubtree()" [disabled]="store.focusIndex() < 0">
-          Copy subtree
-        </button>
-      </div>
-    }
-
-    <span class="spacer"></span>
-
-    <button type="button" (click)="cycleTheme()" title="Theme">
-      Theme: {{ theme() }}
-    </button>
-    @if (doc.hasDocument()) {
-      <button type="button" (click)="close()" title="Close the file and free its memory">
-        Close
-      </button>
-    }
-  </header>
-
-  @if (searchOpen() && doc.hasDocument()) {
-    <div class="searchbar" role="search">
-      <input
-        type="search"
-        placeholder="Find in keys and values&hellip;"
-        autofocus
-        [value]="store.searchOptions().query"
-        (input)="onQuery($event)"
-        (keydown.enter)="nextHit()"
-        aria-label="Search query"
-      />
-      <button type="button" (click)="previousHit()" title="Previous match">&lsaquo;</button>
-      <button type="button" (click)="nextHit()" title="Next match">&rsaquo;</button>
-      <span class="search-summary" aria-live="polite">{{ searchSummary() }}</span>
-      <label
-        ><input
-          type="checkbox"
-          [checked]="store.searchOptions().inKeys"
-          (change)="toggleSearchOption('inKeys')"
-        />
-        keys</label
-      >
-      <label
-        ><input
-          type="checkbox"
-          [checked]="store.searchOptions().inValues"
-          (change)="toggleSearchOption('inValues')"
-        />
-        values</label
-      >
-      <label
-        ><input
-          type="checkbox"
-          [checked]="store.searchOptions().caseSensitive"
-          (change)="toggleSearchOption('caseSensitive')"
-        />
-        match case</label
-      >
-      <span class="spacer"></span>
-      <button type="button" (click)="closeSearch()">Close</button>
-    </div>
+  @if (doc.hasDocument()) {
+    <app-breadcrumb />
   }
 
   @if (store.truncated()) {
-    <div class="banner banner-warn" role="status">
-      Stopped after {{ store.rows().length.toLocaleString() }} rows. A browser cannot scroll a
-      list taller than this reliably, so the rest is hidden.
-      <button type="button" (click)="store.collapseAll()">Collapse all</button>
+    <div class="banner" role="status">
+      <app-icon name="warning" [size]="13" />
+      <span>
+        Stopped after {{ store.rows().length.toLocaleString() }} rows. A browser cannot scroll a
+        list taller than this reliably, so the rest is hidden.
+      </span>
+      <button type="button" class="btn-ghost" (click)="store.collapseAll()">Collapse all</button>
     </div>
   }
 
@@ -145,52 +28,30 @@
       </div>
     } @else if (doc.error(); as error) {
       <div class="centered">
-        <div class="error-panel" role="alert">
-          <h2>{{ error.message }}</h2>
-          @if (error.location) {
-            <pre class="frame">{{ error.location.frame }}</pre>
-          }
-          @if (error.detail) {
-            <p class="detail">{{ error.detail }}</p>
-          }
-          <button type="button" (click)="close()">Dismiss</button>
-        </div>
+        <app-error-panel [error]="error" (dismissed)="close()" />
       </div>
     } @else if (doc.hasDocument()) {
-      <app-json-tree />
+      <app-json-tree (rowMenu)="openRowMenu($event)" />
     } @else {
       <div class="centered">
-        <div class="empty">
-          <h1>JSON viewer</h1>
-          <p>Drop a JSON or NDJSON file here, or use <strong>Open file</strong>.</p>
-          <p class="hint">
-            Built for large exports. Your file is only ever read &mdash; nothing is written back,
-            and nothing leaves this browser.
-          </p>
-          <ul class="hint">
-            <li>
-              <strong>NDJSON</strong> (also <code>.jsonl</code>) opens as an array of its
-              records &mdash; one line, one record.
-            </li>
-            <li><strong>Data</strong> shows the full tree with values.</li>
-            <li><strong>Structure</strong> shows the shape and per-field statistics, no values.</li>
-            <li>
-              Arrows navigate, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> collapse and expand,
-              <kbd>j</kbd> jumps between the two views.
-            </li>
-          </ul>
-        </div>
+        <app-empty-state />
       </div>
     }
   </main>
 
   @if (doc.hasDocument()) {
-    <footer class="status" aria-live="polite">
-      <span class="status-main">{{ statusText() }}</span>
-      @if (store.focusPath(); as path) {
-        <span class="status-path" [title]="path.accessor">{{ path.accessor }}</span>
-      }
-    </footer>
+    <app-status-bar />
+  }
+
+  @if (rowMenu(); as menu) {
+    <app-context-menu
+      [items]="menuItems()"
+      [at]="menu"
+      [heading]="menuHeading()"
+      label="Row actions"
+      (action)="runRowAction($event)"
+      (dismissed)="closeRowMenu()"
+    />
   }
 
   @if (isDragging()) {
@@ -199,7 +60,53 @@
     </div>
   }
 
-  @if (toast(); as message) {
+  @if (toasts.message(); as message) {
     <div class="toast" role="status">{{ message }}</div>
+  }
+
+  @if (shortcutsOpen()) {
+    <div class="sheet-backdrop" (click)="shortcutsOpen.set(false)">
+      <div
+        class="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Keyboard shortcuts"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="sheet-head">
+          <h2>Keyboard</h2>
+          <button
+            type="button"
+            class="btn-icon"
+            aria-label="Close"
+            (click)="shortcutsOpen.set(false)"
+          >
+            <app-icon name="close" />
+          </button>
+        </div>
+        <dl class="shortcuts">
+          <dt><kbd>&uarr;</kbd><kbd>&darr;</kbd></dt>
+          <dd>Move</dd>
+          <dt><kbd>&rarr;</kbd></dt>
+          <dd>Expand, or step into the first child</dd>
+          <dt><kbd>&larr;</kbd></dt>
+          <dd>Collapse, or step out to the parent</dd>
+          <dt><kbd>Enter</kbd><kbd>Space</kbd></dt>
+          <dd>Toggle</dd>
+          <dt><kbd>Home</kbd><kbd>End</kbd></dt>
+          <dd>First / last row</dd>
+          <dt><kbd>PgUp</kbd><kbd>PgDn</kbd></dt>
+          <dd>One screen</dd>
+          <dt><kbd>*</kbd></dt>
+          <dd>Expand all</dd>
+          <dt><kbd>j</kbd></dt>
+          <dd>Jump to the other view</dd>
+          <dt><kbd>Ctrl</kbd><kbd>F</kbd></dt>
+          <dd>Find — shadows the browser's own, which would only see the rendered rows</dd>
+          <dt><kbd>Shift</kbd><kbd>F10</kbd></dt>
+          <dd>Open the row's action menu</dd>
+        </dl>
+      </div>
+    </div>
   }
 </div>

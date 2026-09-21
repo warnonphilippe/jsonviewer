@@ -2,16 +2,31 @@ import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrollin
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  afterNextRender,
   afterRenderEffect,
   computed,
   inject,
+  output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { Row } from '../core/flatten';
 import { badgeFor, formatScalar, previewContainer } from '../core/preview';
+import { MAX_STICKY_LEVELS, stickyPlan } from '../core/sticky';
+import { scrollTargetFor } from '../core/scroll-plan';
 import { ROW_HEIGHT, ViewerStore } from '../state/viewer.store';
 import { JsonDocumentStore } from '../state/json-document.store';
+import { NodeActions } from '../state/node-actions';
+import { AppIcon } from '../ui/icon';
+
+/** A request to open the row menu, raised by right-click or Shift+F10. */
+export interface RowMenuRequest {
+  readonly index: number;
+  readonly x: number;
+  readonly y: number;
+}
 
 /**
  * The virtual-scrolled tree, shared by the data and structure views.
@@ -25,10 +40,21 @@ import { JsonDocumentStore } from '../state/json-document.store';
  * in the DOM at any time anyway, which is also why each rendered row must carry
  * `aria-setsize`/`aria-posinset`: without them a screen reader would be told the
  * tree is 40 items long.
+ *
+ * Two things are layered on top of the viewport without ever reaching inside
+ * it, because the fixed-size scroll strategy trusts `itemSize` absolutely:
+ *
+ *  - the pinned ancestors are a sibling overlay, driven only by
+ *    `scrolledIndexChange`. Projecting them into the viewport would put them
+ *    inside `.cdk-virtual-scroll-content-wrapper`, which carries the CDK's own
+ *    transform and would scroll them away.
+ *  - the hover action cluster is `position: absolute` inside the row, so it
+ *    contributes no height. `.row` already has `contain: layout paint`, which
+ *    makes it a containing block and clips the cluster to the row.
  */
 @Component({
   selector: 'app-json-tree',
-  imports: [ScrollingModule],
+  imports: [ScrollingModule, AppIcon],
   templateUrl: './json-tree.html',
   styleUrl: './json-tree.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,14 +62,44 @@ import { JsonDocumentStore } from '../state/json-document.store';
 export class JsonTree {
   protected readonly store = inject(ViewerStore);
   protected readonly doc = inject(JsonDocumentStore);
+  protected readonly actions = inject(NodeActions);
 
+  private readonly host = inject(ElementRef<HTMLElement>);
   private readonly viewport = viewChild<CdkVirtualScrollViewport>('viewport');
   private readonly treeElement = viewChild<ElementRef<HTMLElement>>('tree');
+
+  readonly rowMenu = output<RowMenuRequest>();
 
   protected readonly rowHeight = ROW_HEIGHT;
   protected readonly rows = this.store.rows;
   protected readonly focusIndex = this.store.focusIndex;
   protected readonly matched = this.store.matchedRows;
+
+  /**
+   * The row under the pointer. A signal rather than a `:hover` rule because the
+   * cluster is five icons: gating it on one row means five SVG subtrees exist in
+   * the whole document instead of 200 across the rendered range, recreated
+   * every time the virtual scroller recycles a view.
+   */
+  protected readonly hoveredIndex = signal(-1);
+
+  /** Rows that fit on screen. Measured, so it follows a window resize. */
+  private readonly viewportRows = signal(30);
+
+  /**
+   * How many ancestors may be pinned right now: the hard cap, but never more
+   * than half the viewport, so a short window is not buried under its own
+   * breadcrumbs.
+   */
+  protected readonly maxSticky = computed(() =>
+    this.store.stickyEnabled()
+      ? Math.min(MAX_STICKY_LEVELS, Math.max(0, Math.floor(this.viewportRows() / 2)))
+      : 0,
+  );
+
+  protected readonly stickyIndices = computed(() =>
+    stickyPlan(this.rows(), this.store.topVisibleIndex(), this.maxSticky()),
+  );
 
   /** The row the current search hit sits on, for a stronger highlight. */
   protected readonly currentHitRow = computed(() => {
@@ -65,6 +121,8 @@ export class JsonTree {
   private lastScrollSeq = 0;
 
   constructor() {
+    const destroyRef = inject(DestroyRef);
+
     // Navigation (search, view jumps) publishes a target on the store; act on it
     // only once the newly expanded rows have actually been rendered, otherwise
     // scrollToIndex would work against stale geometry.
@@ -73,6 +131,29 @@ export class JsonTree {
       if (target.index < 0 || target.seq === this.lastScrollSeq) return;
       this.lastScrollSeq = target.seq;
       this.scrollTo(target.index);
+    });
+
+    afterNextRender(() => {
+      const viewport = this.viewport();
+      if (!viewport) return;
+      const element = viewport.elementRef.nativeElement;
+
+      // The overlay spans the viewport, so it would otherwise sit over the
+      // scrollbar. Measured rather than guessed: it is 0 under overlay
+      // scrollbars and ~15px under classic ones.
+      const measure = () => {
+        const height = element.clientHeight;
+        if (height > 0) this.viewportRows.set(Math.max(1, Math.floor(height / ROW_HEIGHT)));
+        this.host.nativeElement.style.setProperty(
+          '--sb-gutter',
+          `${element.offsetWidth - element.clientWidth}px`,
+        );
+      };
+      measure();
+      const observer = new ResizeObserver(measure);
+      observer.observe(element);
+
+      destroyRef.onDestroy(() => observer.disconnect());
     });
   }
 
@@ -148,17 +229,11 @@ export class JsonTree {
       parts.push(`optional ${percent.toFixed(percent < 10 ? 1 : 0)}%`);
     }
     if (meta.nulls > 0) {
-      parts.push(
-        meta.nulls === meta.count
-          ? 'always null'
-          : `${meta.nulls.toLocaleString()} null`,
-      );
+      parts.push(meta.nulls === meta.count ? 'always null' : `${meta.nulls.toLocaleString()} null`);
     }
     if (meta.empties > 0) {
       parts.push(
-        meta.empties === meta.count
-          ? 'always empty'
-          : `${meta.empties.toLocaleString()} empty`,
+        meta.empties === meta.count ? 'always empty' : `${meta.empties.toLocaleString()} empty`,
       );
     }
     if (meta.lengths) {
@@ -175,6 +250,12 @@ export class JsonTree {
     return this.store.isExpanded(index);
   }
 
+  protected indentOf(row: Row): number {
+    return 8 + row.depth * 14;
+  }
+
+  // --- pointer ------------------------------------------------------------
+
   protected onRowClick(index: number, row: Row): void {
     this.focusIndex.set(index);
     if (row.ref) this.store.toggleRow(index);
@@ -186,6 +267,62 @@ export class JsonTree {
     else this.store.revealMore(index);
   }
 
+  /**
+   * One delegated listener for the whole viewport rather than a binding per
+   * row: the rendered range is recycled constantly, and this way the hover
+   * state costs one handler regardless of how many rows exist.
+   */
+  protected onPointerOver(event: Event): void {
+    const row = (event.target as HTMLElement).closest<HTMLElement>('.row[data-index]');
+    const raw = row?.dataset['index'];
+    this.hoveredIndex.set(raw === undefined ? -1 : Number(raw));
+  }
+
+  protected onPointerLeave(): void {
+    this.hoveredIndex.set(-1);
+  }
+
+  protected runAction(event: Event, index: number, id: string): void {
+    event.stopPropagation();
+    this.focusIndex.set(index);
+    this.actions.run(id as Parameters<NodeActions['run']>[0], index);
+  }
+
+  protected onContextMenu(event: MouseEvent, index: number): void {
+    event.preventDefault();
+    this.focusIndex.set(index);
+    this.rowMenu.emit({ index, x: event.clientX, y: event.clientY });
+  }
+
+  /** Jump to an ancestor from the pinned stack. */
+  protected goToAncestor(index: number): void {
+    this.store.goToRow(index);
+    this.focus();
+  }
+
+  // --- scrolling and focus ------------------------------------------------
+
+  /**
+   * Scroll a row into view, keeping context above it and clear of the pinned
+   * stack. The decision is `core/scroll-plan.ts`; this only carries it out.
+   */
+  scrollTo(index: number): void {
+    const viewport = this.viewport();
+    if (!viewport) return;
+    const target = scrollTargetFor(
+      this.rows(),
+      index,
+      this.store.topVisibleIndex(),
+      this.viewportRows(),
+      this.maxSticky(),
+    );
+    if (target !== null) viewport.scrollToIndex(target);
+  }
+
+  focus(): void {
+    this.treeElement()?.nativeElement.focus();
+  }
+
   /** Move the cursor and bring it into view. */
   private focusRow(index: number): void {
     const rows = this.rows();
@@ -195,18 +332,15 @@ export class JsonTree {
     this.scrollTo(clamped);
   }
 
-  /** Scroll a row into view, keeping a little context above it. */
-  scrollTo(index: number): void {
-    const viewport = this.viewport();
-    if (!viewport) return;
-    const range = viewport.getRenderedRange();
-    const perScreen = Math.max(1, Math.floor(viewport.getViewportSize() / this.rowHeight));
-    if (index >= range.start + 2 && index < range.start + perScreen - 2) return;
-    viewport.scrollToIndex(Math.max(0, index - 3));
-  }
-
-  focus(): void {
-    this.treeElement()?.nativeElement.focus();
+  /** Open the row menu from the keyboard, anchored on the focused row. */
+  private openMenuForFocus(index: number): void {
+    const element = document.getElementById(`tree-row-${index}`);
+    const rect = element?.getBoundingClientRect();
+    this.rowMenu.emit({
+      index,
+      x: rect ? rect.left + 24 : 0,
+      y: rect ? rect.bottom : 0,
+    });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -215,10 +349,7 @@ export class JsonTree {
     const current = this.focusIndex();
     const index = current < 0 ? 0 : current;
     const row = rows[index];
-    const viewport = this.viewport();
-    const perScreen = viewport
-      ? Math.max(1, Math.floor(viewport.getViewportSize() / this.rowHeight) - 1)
-      : 10;
+    const perScreen = Math.max(1, this.viewportRows() - 1);
 
     switch (event.key) {
       case 'ArrowDown':
@@ -262,6 +393,13 @@ export class JsonTree {
         // The store publishes a scroll target; afterRenderEffect acts on it.
         if (this.store.view() === 'data') this.store.showInStructureView(index);
         else this.store.showInDataView(index);
+        break;
+      case 'ContextMenu':
+        this.openMenuForFocus(index);
+        break;
+      case 'F10':
+        if (!event.shiftKey) return;
+        this.openMenuForFocus(index);
         break;
       default:
         return;

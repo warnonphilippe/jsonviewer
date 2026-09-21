@@ -1,0 +1,157 @@
+<header class="toolbar">
+  <span class="mark" aria-hidden="true">&#123;&#125;</span>
+
+  @if (doc.meta(); as meta) {
+    <div class="chip file-chip">
+      <app-icon name="file" [size]="13" />
+      <span class="file-name" [title]="meta.fileName">{{ meta.fileName }}</span>
+      <span class="file-size">{{ fileSize() }}</span>
+      <span class="chip-sep"></span>
+      <span class="file-format">{{ formatLabel() }}</span>
+      <button
+        type="button"
+        class="chip-close"
+        title="Close the file and free its memory"
+        aria-label="Close file"
+        (click)="closeFile.emit()"
+      >
+        <app-icon name="close" [size]="11" />
+      </button>
+    </div>
+  } @else {
+    <span class="wordmark">JSON viewer</span>
+  }
+
+  <label class="open-button" [class.is-compact]="doc.hasDocument()">
+    <input type="file" [attr.accept]="accept" (change)="onFileInput($event)" />
+    @if (doc.hasDocument()) {
+      <app-icon name="file" [size]="13" />
+      <span class="sr-only">Open another file</span>
+    } @else {
+      Open file&hellip;
+    }
+  </label>
+
+  @if (doc.hasDocument()) {
+    <div class="seg" role="tablist" aria-label="View">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="store.view() === 'data'"
+        (click)="setView('data')"
+      >
+        Data
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="store.view() === 'structure'"
+        (click)="setView('structure')"
+      >
+        Structure
+      </button>
+    </div>
+
+    <div class="field search" role="search">
+      <app-icon name="search" [size]="13" />
+      <input
+        #search
+        type="search"
+        placeholder="Find in keys and values&hellip;"
+        aria-label="Search query"
+        [value]="store.searchOptions().query"
+        (input)="onQuery($event)"
+        (keydown)="onSearchKeydown($event)"
+      />
+
+      @if (searchSummary(); as summary) {
+        <span class="search-summary" aria-live="polite">{{ summary }}</span>
+      }
+
+      @if (store.searchOptions().query !== '') {
+        <button
+          type="button"
+          class="field-button"
+          title="Previous match (Shift+Enter)"
+          aria-label="Previous match"
+          [disabled]="!hasHits()"
+          (click)="store.previousHit()"
+        >
+          <app-icon name="chevron-up" [size]="12" />
+        </button>
+        <button
+          type="button"
+          class="field-button"
+          title="Next match (Enter)"
+          aria-label="Next match"
+          [disabled]="!hasHits()"
+          (click)="store.nextHit()"
+        >
+          <app-icon name="chevron-down" [size]="12" />
+        </button>
+        <button
+          type="button"
+          class="field-button"
+          title="Clear"
+          aria-label="Clear search"
+          (click)="clearSearch()"
+        >
+          <app-icon name="close" [size]="11" />
+        </button>
+      }
+
+      <span class="chip-sep"></span>
+      <button
+        type="button"
+        class="field-button"
+        title="Search options"
+        aria-label="Search options"
+        [attr.aria-expanded]="popover()?.kind === 'options'"
+        (click)="togglePopover('options', $event)"
+      >
+        <app-icon name="case" [size]="13" />
+      </button>
+    </div>
+  }
+
+  <span class="spacer"></span>
+
+  <button
+    type="button"
+    class="btn-icon"
+    [title]="'Theme: ' + themes.theme()"
+    aria-label="Cycle theme"
+    (click)="themes.cycle()"
+  >
+    <app-icon [name]="themeIcon()" />
+  </button>
+  <button
+    type="button"
+    class="btn-icon"
+    title="Keyboard shortcuts"
+    aria-label="Keyboard shortcuts"
+    (click)="showShortcuts.emit()"
+  >
+    <app-icon name="keyboard" />
+  </button>
+  <button
+    type="button"
+    class="btn-icon"
+    title="More"
+    aria-label="More"
+    [attr.aria-expanded]="popover()?.kind === 'overflow'"
+    (click)="togglePopover('overflow', $event)"
+  >
+    <app-icon name="more" />
+  </button>
+</header>
+
+@if (popover(); as open) {
+  <app-context-menu
+    [items]="open.kind === 'options' ? optionItems() : overflowItems()"
+    [at]="open"
+    [label]="open.kind === 'options' ? 'Search options' : 'More'"
+    (action)="onPopoverAction($event)"
+    (dismissed)="popover.set(null)"
+  />
+}

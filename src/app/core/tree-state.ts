@@ -78,15 +78,26 @@ export function collapseAll(state: TreeState): TreeState {
   return { ...state, expanded: new Set(), collapsed: new Set(), autoExpandDepth: 0, revealed: new Map() };
 }
 
-/** Open a chain of ancestors, e.g. to reveal a search hit. */
-export function revealChain(state: TreeState, chain: readonly object[]): TreeState {
+/**
+ * Open every container in `refs`, clearing any explicit collapse on them.
+ *
+ * Serves both callers that have a chain (revealing a search hit) and callers
+ * that have a whole subtree ("expand this branch"), which are the same
+ * operation over a different set.
+ */
+export function expandContainers(state: TreeState, refs: Iterable<object>): TreeState {
   const expanded = new Set(state.expanded);
   const collapsed = new Set(state.collapsed);
-  for (const ref of chain) {
+  for (const ref of refs) {
     expanded.add(ref);
     collapsed.delete(ref);
   }
   return { ...state, expanded, collapsed };
+}
+
+/** Open a chain of ancestors, e.g. to reveal a search hit. */
+export function revealChain(state: TreeState, chain: readonly object[]): TreeState {
+  return expandContainers(state, chain);
 }
 
 /** Show `count` children of one container. */

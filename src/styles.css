@@ -1,107 +1,101 @@
-/* Design tokens. Light is the default; dark applies from the OS preference and
-   can be forced either way with [data-theme] on <html>. */
+/**
+ * Design tokens and the app-wide primitives built from them.
+ *
+ * Every colour is declared ONCE with `light-dark()`. The previous stylesheet
+ * repeated the dark palette verbatim in two blocks -- a `prefers-color-scheme`
+ * media query and a `[data-theme='dark']` rule -- which is three places to keep
+ * in sync for every value. `color-scheme` on the root does that job instead:
+ * the OS preference is honoured by default, and `[data-theme]` forces one way
+ * or the other by narrowing `color-scheme`, which is exactly what
+ * `App.cycleTheme()` already sets and removes.
+ *
+ * The primitives (.btn, .seg, .chip, .field, .menu, .kbd, .jv-*) live here
+ * rather than in component stylesheets on purpose: a component stylesheet is
+ * capped at 4 kB by the `anyComponentStyle` budget in angular.json, and these
+ * rules are consumed by five components each.
+ */
+
 :root {
+  color-scheme: light dark;
+
+  /* Row geometry. --row-height MUST stay exactly equal to ROW_HEIGHT in
+     state/viewer.store.ts: the CDK fixed-size scroll strategy trusts that
+     number, and any drift desynchronises the scrollbar progressively until the
+     bottom of the list becomes unreachable. */
   --row-height: 24px;
   --indent: 14px;
 
-  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  --bg: #ffffff;
-  --bg-sunken: #f4f5f7;
-  --bg-raised: #ffffff;
-  --bg-hover: #eceef1;
-  --bg-focus: #dbeafe;
-  --bg-match: #fef3c7;
-  --bg-match-current: #fcd34d;
+  /* Type scale */
+  --fs-xs: 10.5px;
+  --fs-sm: 11.5px;
+  --fs-md: 12.5px;
+  --fs-base: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 22px;
 
-  --border: #d5d8dd;
-  --border-strong: #b4b9c1;
+  /* Radii */
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
 
-  --text: #1b1f24;
-  --text-muted: #5c6370;
-  --text-faint: #848b96;
+  /* Surfaces, from the deepest to the most raised. */
+  --bg: light-dark(#ffffff, #0f1215);
+  --bg-sunken: light-dark(#f6f7f9, #171a20);
+  --bg-raised: light-dark(#ffffff, #1e222a);
+  --bg-overlay: light-dark(#ffffff, #21262e);
+  --bg-hover: light-dark(#edeff2, #272c35);
+  --bg-active: light-dark(#e3e7ec, #2f3540);
 
-  --accent: #1d4ed8;
-  --accent-text: #ffffff;
+  --bg-focus: light-dark(#dbeafe, #1c3050);
+  --bg-match: light-dark(#fef3c7, #3a3010);
+  --bg-match-current: light-dark(#fcd34d, #5c4a11);
 
-  --key: #8250df;
-  --type-string: #0a7c5a;
-  --type-number: #b3541e;
-  --type-boolean: #1d4ed8;
-  --type-null: #6b7280;
-  --type-container: #5c6370;
+  --border: light-dark(#dfe2e7, #2b313a);
+  --border-strong: light-dark(#c2c8d0, #3a4250);
 
-  --danger: #b4232c;
-  --danger-bg: #fdf0f0;
-  --warn: #8a5a00;
-  --warn-bg: #fdf6e3;
+  --text: light-dark(#1b1f24, #e6e9ed);
+  --text-muted: light-dark(#5c6370, #98a1ad);
+  --text-faint: light-dark(#8a919c, #6b7480);
+
+  --accent: light-dark(#1d4ed8, #5b8cf5);
+  --accent-text: light-dark(#ffffff, #0b0e12);
+
+  /* Value syntax colours. */
+  --key: light-dark(#8250df, #c9a2f7);
+  --type-string: light-dark(#0a7c5a, #5ac795);
+  --type-number: light-dark(#b3541e, #eda06a);
+  --type-boolean: light-dark(#1d4ed8, #7aa6f8);
+  --type-null: light-dark(#6b7280, #8b93a0);
+  --type-container: light-dark(#5c6370, #7d8794);
+
+  --danger: light-dark(#b4232c, #f08a8a);
+  --danger-bg: light-dark(#fdf0f0, #2c1a1c);
+  --warn: light-dark(#8a5a00, #e0b45c);
+  --warn-bg: light-dark(#fdf6e3, #2b2415);
+  --ok: light-dark(#0a7c5a, #4bc491);
+  --ok-bg: light-dark(#f0f9f4, #14231c);
+
+  /* Elevation. */
+  --shadow-1: 0 1px 2px light-dark(rgb(16 24 40 / 0.1), rgb(0 0 0 / 0.4));
+  --shadow-2: 0 4px 12px light-dark(rgb(16 24 40 / 0.1), rgb(0 0 0 / 0.5));
+  --shadow-3: 0 12px 32px light-dark(rgb(16 24 40 / 0.16), rgb(0 0 0 / 0.6));
+
+  /* Width of the virtual scroller's scrollbar gutter, measured at runtime by
+     JsonTree so the pinned-ancestor overlay does not cover the scrollbar. */
+  --sb-gutter: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #14171c;
-    --bg-sunken: #0f1216;
-    --bg-raised: #1b1f26;
-    --bg-hover: #23282f;
-    --bg-focus: #1e3a5f;
-    --bg-match: #4a3a10;
-    --bg-match-current: #7a5c12;
-
-    --border: #2c323a;
-    --border-strong: #454d57;
-
-    --text: #e5e8ec;
-    --text-muted: #9aa3ae;
-    --text-faint: #6f7883;
-
-    --accent: #5b8cf5;
-    --accent-text: #0b0e12;
-
-    --key: #c39bf5;
-    --type-string: #4bc491;
-    --type-number: #e59b63;
-    --type-boolean: #7aa6f8;
-    --type-null: #8b93a0;
-    --type-container: #9aa3ae;
-
-    --danger: #f08a8a;
-    --danger-bg: #2c1a1c;
-    --warn: #e0b45c;
-    --warn-bg: #2b2415;
-  }
+/* Forcing a theme narrows `color-scheme`, which is what light-dark() reads. */
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #14171c;
-  --bg-sunken: #0f1216;
-  --bg-raised: #1b1f26;
-  --bg-hover: #23282f;
-  --bg-focus: #1e3a5f;
-  --bg-match: #4a3a10;
-  --bg-match-current: #7a5c12;
-
-  --border: #2c323a;
-  --border-strong: #454d57;
-
-  --text: #e5e8ec;
-  --text-muted: #9aa3ae;
-  --text-faint: #6f7883;
-
-  --accent: #5b8cf5;
-  --accent-text: #0b0e12;
-
-  --key: #c39bf5;
-  --type-string: #4bc491;
-  --type-number: #e59b63;
-  --type-boolean: #7aa6f8;
-  --type-null: #8b93a0;
-  --type-container: #9aa3ae;
-
-  --danger: #f08a8a;
-  --danger-bg: #2c1a1c;
-  --warn: #e0b45c;
-  --warn-bg: #2b2415;
+  color-scheme: dark;
 }
 
 * {
@@ -117,7 +111,7 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 var(--font-ui);
+  font: var(--fs-base) / 1.45 var(--font-ui);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -126,37 +120,385 @@ app-root {
   height: 100%;
 }
 
-button {
-  font: inherit;
-  color: inherit;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* --- buttons ------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  padding: 0 10px;
+  font: 500 var(--fs-md) / 1 var(--font-ui);
+  color: var(--text);
   background: var(--bg-raised);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 9px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
+.btn:hover:not(:disabled) {
   background: var(--bg-hover);
   border-color: var(--border-strong);
 }
 
-button:disabled {
-  opacity: 0.5;
+.btn:disabled {
+  opacity: 0.45;
   cursor: default;
 }
 
-input[type='text'],
-input[type='search'] {
-  font: inherit;
-  color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 8px;
+.btn-primary {
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  filter: brightness(1.08);
+}
+
+/* Icon-only. Square, no label. */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.btn-icon:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Borderless, for clusters inside an existing surface. */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 23px;
+  padding: 0 7px;
+  font: 500 var(--fs-sm) / 1 var(--font-ui);
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --- segmented control -------------------------------------------------- */
+
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 21px;
+  padding: 0 11px;
+  font: 500 var(--fs-md) / 1 var(--font-ui);
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.seg button:hover:not(:disabled):not([aria-selected='true']) {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.seg button[aria-selected='true'],
+.seg button.is-active {
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-1);
+}
+
+.seg button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --- chip (the file identity in the toolbar) ---------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 27px;
+  padding: 0 5px 0 9px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.chip-sep {
+  width: 1px;
+  height: 13px;
+  background: var(--border);
+}
+
+/* --- text field --------------------------------------------------------- */
+
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 5px 0 9px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.field:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  outline-offset: -1px;
+}
+
+.field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: var(--fs-md) / 1 var(--font-mono);
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.field input:focus {
+  outline: none;
+}
+
+.field input::placeholder {
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+}
+
+/* Chrome puts its own clear button in a search input; ours is explicit. */
+.field input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* --- menus (context menu, overflow menu) -------------------------------- */
+
+.menu {
+  min-width: 200px;
+  padding: 5px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 27px;
+  padding: 0 9px;
+  font: 450 var(--fs-md) / 1 var(--font-ui);
+  text-align: start;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menu-item:hover:not([aria-disabled='true']),
+.menu-item.is-active {
+  background: var(--bg-hover);
+}
+
+.menu-item[aria-disabled='true'] {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.menu-item .menu-icon {
+  flex: 0 0 auto;
+  display: flex;
+  color: var(--text-muted);
+}
+
+.menu-item[aria-disabled='true'] .menu-icon {
+  opacity: 0.5;
+}
+
+.menu-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-key {
+  flex: 0 0 auto;
+  font: var(--fs-xs) var(--font-mono);
+  color: var(--text-faint);
+}
+
+.menu-sep {
+  height: 1px;
+  margin: 5px -5px;
+  background: var(--border);
+}
+
+.menu-heading {
+  padding: 4px 9px 7px;
+  font: var(--fs-sm) var(--font-mono);
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- keycap ------------------------------------------------------------- */
+
+kbd,
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  font: 11px var(--font-mono);
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- shared row vocabulary ----------------------------------------------
+   Used by the virtual rows, the pinned ancestor rows, the breadcrumb and the
+   context-menu heading. Lives here so the colour mapping exists once and costs
+   nothing against any component's 4 kB budget. */
+
+.jv-key {
+  flex: 0 0 auto;
+  color: var(--key);
+  font-weight: 600;
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* An array index is a position, not a name. */
+.jv-key.is-index {
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+.jv-badge {
+  flex: 0 0 auto;
+  height: 15px;
+  line-height: 13px;
+  padding: 0 5px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.jv-count {
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.jv-value,
+.jv-stats {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.jv-stats {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.jv-badge[data-type='string'],
+.jv-value[data-type='string'] {
+  color: var(--type-string);
+}
+
+.jv-badge[data-type='number'],
+.jv-value[data-type='number'] {
+  color: var(--type-number);
+}
+
+.jv-badge[data-type='boolean'],
+.jv-value[data-type='boolean'] {
+  color: var(--type-boolean);
+}
+
+.jv-badge[data-type='null'],
+.jv-value[data-type='null'] {
+  color: var(--type-null);
+}
+
+.jv-value[data-type='null'] {
+  font-style: italic;
+}
+
+.jv-badge[data-type='object'],
+.jv-badge[data-type='array'] {
+  color: var(--type-container);
+}
+
+.jv-value[data-type='object'],
+.jv-value[data-type='array'] {
+  color: var(--text-faint);
 }

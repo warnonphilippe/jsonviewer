@@ -1,0 +1,15 @@
+<div class="panel" role="alert">
+  <div class="head">
+    <span class="badge" aria-hidden="true"><app-icon name="warning" [size]="15" /></span>
+    <h2>{{ error().message }}</h2>
+  </div>
+
+  @if (error().location; as location) {
+    <pre class="frame">{{ location.frame }}</pre>
+  }
+  @if (error().detail; as detail) {
+    <p class="detail">{{ detail }}</p>
+  }
+
+  <button type="button" class="btn" (click)="dismissed.emit()">Dismiss</button>
+</div>

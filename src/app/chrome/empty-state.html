@@ -1,0 +1,37 @@
+<div class="empty">
+  <div class="drop">
+    <span class="glyph" aria-hidden="true"><app-icon name="braces" [size]="24" /></span>
+    <h1>Open a JSON or NDJSON file</h1>
+    <p class="lede">
+      Built for the exports that text editors cannot open. Drop a file anywhere in this window, or
+      use <strong>Open file</strong>.
+    </p>
+    <p class="promise">
+      <app-icon name="shield" [size]="13" />
+      Read-only. Nothing is written back, and nothing leaves this browser.
+    </p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h2>NDJSON</h2>
+      <p>Also <code>.jsonl</code> — opens as an array of its records, one line per record.</p>
+    </div>
+    <div class="card">
+      <h2>Data</h2>
+      <p>The full tree with values, expandable node by node.</p>
+    </div>
+    <div class="card">
+      <h2>Structure</h2>
+      <p>The shape only — types, occurrences, nulls and empties. No values.</p>
+    </div>
+  </div>
+
+  <ul class="keys">
+    <li><kbd>&uarr;</kbd><kbd>&darr;</kbd> move</li>
+    <li><kbd>&larr;</kbd><kbd>&rarr;</kbd> collapse and expand</li>
+    <li><kbd>*</kbd> expand all</li>
+    <li><kbd>j</kbd> jump between views</li>
+    <li><kbd>Ctrl</kbd><kbd>F</kbd> find</li>
+  </ul>
+</div>

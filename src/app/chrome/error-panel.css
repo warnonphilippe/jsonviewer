@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  max-width: 84ch;
+}
+
+.panel {
+  padding: 18px 20px;
+  text-align: start;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.badge {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-radius: 8px;
+}
+
+.head h2 {
+  margin: 0;
+  padding-top: 4px;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.frame {
+  margin: 0 0 12px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: 12px / 1.55 var(--font-mono);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.detail {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font: var(--fs-md) var(--font-mono);
+}

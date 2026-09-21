@@ -1,0 +1,99 @@
+<div class="context-bar">
+  <nav class="trail" aria-label="Path">
+    <button type="button" class="crumb crumb-root" title="Go to the top" (click)="goTo(0)">
+      <app-icon name="braces" [size]="12" />
+      root
+    </button>
+
+    @for (crumb of shown(); track crumb.index; let i = $index) {
+      @if (elided() && i === 2) {
+        <span class="sep" aria-hidden="true">›</span>
+        <span class="ellipsis" title="Some levels are not shown">…</span>
+      }
+      <span class="sep" aria-hidden="true">›</span>
+      <button
+        type="button"
+        class="crumb"
+        [class.is-index]="crumb.isIndex"
+        [class.is-current]="crumb.isLast"
+        [attr.aria-current]="crumb.isLast ? 'true' : null"
+        (click)="goTo(crumb.index)"
+      >
+        {{ crumb.label }}
+      </button>
+    }
+  </nav>
+
+  <div class="seg depth" role="group" aria-label="Expand to depth">
+    <button
+      type="button"
+      title="Collapse everything"
+      aria-label="Collapse everything"
+      (click)="store.collapseAll()"
+    >
+      <app-icon name="collapse" [size]="13" />
+    </button>
+    <button type="button" title="Open the top level only" (click)="store.expandToDepth(1)">
+      1
+    </button>
+    <button type="button" title="Open two levels" (click)="store.expandToDepth(2)">2</button>
+    <button type="button" title="Open three levels" (click)="store.expandToDepth(3)">3</button>
+    <button
+      type="button"
+      title="Open everything (capped)"
+      aria-label="Expand everything"
+      (click)="store.expandAll()"
+    >
+      <app-icon name="expand" [size]="13" />
+    </button>
+  </div>
+
+  <span class="divider"></span>
+
+  <div class="node-actions" role="group" aria-label="Actions on the focused row">
+    <button
+      type="button"
+      class="btn-ghost"
+      title="Copy the path of the focused row"
+      aria-label="Copy path"
+      [disabled]="!hasFocus()"
+      (click)="actions.copyPath(store.focusIndex())"
+    >
+      <app-icon name="copy" [size]="13" />
+    </button>
+    <button
+      type="button"
+      class="btn-ghost"
+      title="Copy the JSON Pointer of the focused row"
+      aria-label="Copy JSON Pointer"
+      [disabled]="!hasFocus()"
+      (click)="actions.copyPointer(store.focusIndex())"
+    >
+      <app-icon name="link" [size]="13" />
+    </button>
+    <button
+      type="button"
+      class="btn-ghost"
+      title="Copy the focused subtree as JSON"
+      aria-label="Copy subtree"
+      [disabled]="!hasFocus() || isStructure()"
+      (click)="actions.copySubtree(store.focusIndex())"
+    >
+      <app-icon name="braces" [size]="13" />
+    </button>
+    <button
+      type="button"
+      class="btn-ghost"
+      [title]="
+        (isStructure()
+          ? 'Show this position in the data view'
+          : 'Show this position in the structure view') + ' (j)'
+      "
+      [attr.aria-label]="isStructure() ? 'Show in data view' : 'Show in structure view'"
+      [disabled]="!hasFocus()"
+      (click)="actions.jump(store.focusIndex())"
+    >
+      <app-icon name="swap" [size]="13" />
+    </button>
+  </div>
+</div>

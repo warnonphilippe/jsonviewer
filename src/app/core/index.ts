@@ -9,3 +9,6 @@ export * from './search';
 export * from './load-json';
 export * from './json-locate-error';
 export * from './scroll-limits';
+export * from './sticky';
+export * from './scroll-plan';
+export * from './place-menu';

@@ -8,11 +8,18 @@
  */
 
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { DEFAULT_LIMITS, FlattenLimits, FlattenResult, flatten } from '../core/flatten';
+import {
+  DEFAULT_LIMITS,
+  FlattenLimits,
+  FlattenResult,
+  allContainers,
+  flatten,
+} from '../core/flatten';
 import {
   EMPTY_STATE,
   TreeState,
   collapseAll,
+  expandContainers,
   expandToDepth,
   reveal,
   revealChain,
@@ -21,6 +28,7 @@ import {
 import { ITEM, flattenSchema, schemaChain } from '../core/schema';
 import { firstDataPath, toSchemaKeys } from '../core/schema-link';
 import {
+  ancestorRows,
   findRowByKeys,
   keyPath,
   keysId,
@@ -44,6 +52,16 @@ export const ROW_HEIGHT = 24;
 /** How many more children a "show more" row reveals per click. */
 export const REVEAL_STEP = 10_000;
 
+/**
+ * Ceiling on "expand this subtree".
+ *
+ * Unlike expand-all, a subtree cannot be expressed as an `autoExpandDepth`
+ * rule, so its containers have to be enumerated into a Set. The reference file
+ * has 93,758 containers in total, so this is generous for any realistic branch
+ * while still refusing to build an unbounded set.
+ */
+export const EXPAND_SUBTREE_MAX = 100_000;
+
 @Injectable({ providedIn: 'root' })
 export class ViewerStore {
   private readonly doc = inject(JsonDocumentStore);
@@ -55,6 +73,19 @@ export class ViewerStore {
 
   /** Keyboard cursor, as an index into the current rows. -1 when unset. */
   readonly focusIndex = signal(-1);
+
+  /**
+   * The first row under the viewport's top edge.
+   *
+   * Written by the tree from `CdkVirtualScrollViewport.scrolledIndexChange`,
+   * which reports exactly `floor(scrollOffset / itemSize)` and only when that
+   * value changes. It lives here rather than in the tree because the breadcrumb
+   * is in a different component subtree and needs it too.
+   */
+  readonly topVisibleIndex = signal(0);
+
+  /** Whether the pinned-ancestor stack is shown. Toggled from the overflow menu. */
+  readonly stickyEnabled = signal(true);
 
   /**
    * A request to bring a row into view. The store cannot scroll -- only the
@@ -148,6 +179,23 @@ export class ViewerStore {
     };
   });
 
+  /**
+   * Which row the breadcrumb describes: the cursor when there is one, else
+   * whatever is at the top of the viewport -- so the trail is never empty while
+   * you scroll without touching the keyboard.
+   */
+  readonly breadcrumbIndex = computed(() =>
+    this.focusIndex() >= 0 ? this.focusIndex() : this.topVisibleIndex(),
+  );
+
+  /** Row indices from the root down to and including `breadcrumbIndex`. */
+  readonly breadcrumbTrail = computed<readonly number[]>(() => {
+    const index = this.breadcrumbIndex();
+    const rows = this.rows();
+    if (index < 0 || index >= rows.length) return [];
+    return [...ancestorRows(rows, index), index];
+  });
+
   private debounce: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
@@ -157,10 +205,32 @@ export class ViewerStore {
       this.dataState.set(EMPTY_STATE);
       this.structureState.set(EMPTY_STATE);
       this.focusIndex.set(-1);
+      this.topVisibleIndex.set(0);
       this.currentHit.set(-1);
       this.activeQuery.set('');
       this.searchOptions.set(DEFAULT_SEARCH);
     });
+  }
+
+  // --- navigation ---------------------------------------------------------
+
+  /**
+   * Put the cursor on a row and bring it into view.
+   *
+   * The entry point for everything that navigates without owning the viewport:
+   * the breadcrumb, the pinned ancestors and the context menu.
+   */
+  goToRow(index: number): void {
+    const rows = this.rows();
+    if (index < 0 || index >= rows.length) return;
+    this.focusIndex.set(index);
+    this.requestScroll(index);
+  }
+
+  /** Close a container and land on it -- the breadcrumb's "back up to here". */
+  collapseTo(index: number): void {
+    this.setExpanded(index, false);
+    this.goToRow(index);
   }
 
   // --- expansion ----------------------------------------------------------
@@ -202,6 +272,21 @@ export class ViewerStore {
     const row = this.rows()[index];
     if (!row?.more) return;
     this.setState(reveal(this.state(), row.more.ref, row.more.total));
+  }
+
+  /**
+   * Open every container beneath one row.
+   *
+   * `expandAll` is O(1) because `autoExpandDepth` is a rule; one branch cannot
+   * be expressed as a rule, so its containers are enumerated. Returns false
+   * when the cap cut the walk short, so the caller can say so.
+   */
+  expandSubtree(index: number): boolean {
+    const row = this.rows()[index];
+    if (!row?.ref) return true;
+    const containers = allContainers(row.ref, EXPAND_SUBTREE_MAX);
+    this.setState(expandContainers(this.state(), containers));
+    return containers.size < EXPAND_SUBTREE_MAX;
   }
 
   expandToDepth(depth: number): void {

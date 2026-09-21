@@ -1,0 +1,120 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.context-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- the trail ----------------------------------------------------------- */
+
+.trail {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  /* The bar must never wrap or scroll sideways: `shown()` elides instead. */
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.crumb {
+  flex: 0 1 auto;
+  min-width: 0;
+  height: 21px;
+  padding: 0 7px;
+  font: 600 var(--fs-md) / 1 var(--font-mono);
+  color: var(--key);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crumb:hover {
+  background: var(--bg-hover);
+}
+
+.crumb.is-index {
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
+.crumb.is-current {
+  color: var(--text);
+  background: var(--bg-raised);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.crumb-root {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  font: 500 var(--fs-sm) / 1 var(--font-ui);
+  color: var(--text-muted);
+}
+
+.sep {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: var(--fs-md);
+  opacity: 0.6;
+}
+
+.ellipsis {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  color: var(--text-faint);
+  font-size: var(--fs-md);
+}
+
+/* --- depth and actions --------------------------------------------------- */
+
+.depth {
+  flex: 0 0 auto;
+  padding: 2px;
+  border-radius: var(--radius-md);
+}
+
+.depth button {
+  min-width: 24px;
+  height: 19px;
+  padding: 0 7px;
+  font-size: var(--fs-sm);
+}
+
+.divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+
+.node-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.node-actions .btn-ghost {
+  width: 25px;
+  padding: 0;
+}
+
+@media (max-width: 860px) {
+  .depth button:not(:first-child):not(:last-child) {
+    display: none;
+  }
+}

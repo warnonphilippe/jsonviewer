@@ -80,10 +80,46 @@ of the parsed graph alone costs more than parsing it again.
    runtime (`core/scroll-limits.ts`) and converted into a row cap; hitting it
    shows a banner rather than losing rows quietly.
 
+## The interface
+
+Three bars and a tree. What is deliberate about it:
+
+- **Pinned ancestors.** The branch you are inside stays stuck to the top of the
+  viewport, at the same 24px geometry as the rows. The rule is one sentence:
+  *pin the ancestors of the first row that will be visible below the stack* --
+  solved in `core/sticky.ts`, capped at five levels and at half the viewport.
+  Cost is O(depth), never O(rows), and it runs once per row crossed rather than
+  per frame, because `scrolledIndexChange` only fires when the top row changes.
+  Like every sticky-scroll implementation this occludes the rows just under the
+  top edge; what it guarantees is that everything pinned is a true ancestor of
+  the first row you can read.
+- **A clickable breadcrumb** follows the cursor, or the top of the viewport when
+  there is no cursor, so it says something useful whether you navigate by
+  keyboard or just scroll. It elides its middle rather than scrolling sideways.
+- **One action catalogue, three ways in.** Copy path / pointer / subtree, expand
+  a subtree, jump to the other view and find-this-key all come from
+  `state/node-actions.ts`, offered in the context bar, on row hover, and by
+  right-click. Nothing that acts on the cursor sits in the top bar, so no button
+  there spends its life disabled.
+- **Search is a field, not a drawer.** On a two-million-line export it is the
+  primary tool; having to summon it before you can see whether anything matched
+  is the wrong shape.
+- **The 24px row is load-bearing.** `--row-height` must stay exactly equal to
+  `ROW_HEIGHT` in `state/viewer.store.ts`, and a row must never wrap or gain
+  vertical padding -- the CDK's fixed-size strategy trusts `itemSize`, and drift
+  makes the bottom of the list silently unreachable. That is why the hover
+  cluster is absolutely positioned and the pinned stack is a sibling overlay
+  rather than anything inside the viewport.
+- **Colours are declared once**, with `light-dark()` in `styles.css`; the theme
+  toggle only narrows `color-scheme`, and the choice is remembered.
+
 ## How it works
 
-The core (`src/app/core/`) is pure and Angular-free — ten modules that take a
-value and return data, so they are testable without a browser.
+The core (`src/app/core/`) is pure and Angular-free — thirteen modules that take
+a value and return data, so they are testable without a browser. The interface
+decisions live there too: which ancestors to pin, where to scroll so a row is
+not hidden under them, and where a menu fits on screen are all arithmetic, and
+all unit-tested without a DOM.
 
 - **No node objects.** The parsed value *is* the tree. Rows hold a live
   reference into it and are recomputed from scratch on every expand/collapse
@@ -139,7 +175,7 @@ The underlying npm scripts remain available:
 
 ```bash
 npm start          # dev server (Vite)
-npm test           # unit tests (Vitest) — 190 tests
+npm test           # unit tests (Vitest) — 212 tests
 npm run build      # production build
 ```
 
@@ -157,7 +193,7 @@ Docker Hub under `pwarnon` (a `docker login` is required first):
 
 ```bash
 ./deploy.sh          # pwarnon/json-viewer:latest
-./deploy.sh 1.0.0    # :1.0.0 and :latest
+./deploy.sh 1.1.0    # :1.1.0 and :latest
 ```
 
 The build resolves dependencies from the public npm registry rather than the
@@ -206,9 +242,15 @@ Generated fixtures live in `public/fixtures/` and are git-ignored.
 | <kbd>PageUp</kbd> <kbd>PageDown</kbd> | One screen |
 | <kbd>*</kbd> | Expand all |
 | <kbd>j</kbd> | Jump to the other view |
-| <kbd>Ctrl/Cmd</kbd>+<kbd>F</kbd> | Find |
+| <kbd>Ctrl/Cmd</kbd>+<kbd>F</kbd> | Focus the search field |
+| <kbd>Shift</kbd>+<kbd>F10</kbd> or <kbd>Menu</kbd> | Open the row's action menu |
 
 <kbd>Ctrl/Cmd</kbd>+<kbd>F</kbd> deliberately shadows the browser's own find,
 which would only see the ~40 virtualised rows that exist in the DOM and is
 therefore actively misleading. For the same reason, copy actions are explicit
 buttons: <kbd>Cmd</kbd>+<kbd>A</kbd> in a virtualised list would copy 40 rows.
+
+The tree is a **single tab stop** using `aria-activedescendant`: 400,000
+focusable rows would be unusable, and only ~40 of them exist in the DOM at any
+moment. The hover cluster on a row is therefore `aria-hidden`, and every action
+it offers is also on <kbd>Shift</kbd>+<kbd>F10</kbd> and in the context bar.

@@ -5,6 +5,7 @@
 }
 
 .tree {
+  position: relative;
   height: 100%;
   outline-offset: -2px;
 }
@@ -13,15 +14,17 @@
   height: 100%;
   background: var(--bg);
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: var(--fs-md);
   /* Scroll anchoring fights row insertion when expanding a container. */
   overflow-anchor: none;
 }
 
 /* Rows are a FIXED height and must never wrap: the virtual scroller trusts
    `itemSize`, and a row that grew taller would desynchronise the scrollbar
-   progressively until the bottom became unreachable. */
+   progressively until the bottom became unreachable. Anything added to a row
+   is absolutely positioned for that reason. */
 .row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -54,91 +57,98 @@
 .twisty {
   flex: 0 0 auto;
   width: 10px;
-  color: var(--text-muted);
   font-size: 10px;
-}
-
-.key {
-  flex: 0 0 auto;
-  color: var(--key);
-  font-weight: 600;
-  max-width: 34ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.key.is-index {
-  color: var(--text-faint);
-  font-weight: 400;
-}
-
-.badge {
-  flex: 0 0 auto;
-  font-size: 10.5px;
-  letter-spacing: 0.02em;
-  padding: 0 5px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
   color: var(--text-muted);
+}
+
+/* --- hover / focus actions ---------------------------------------------- */
+
+.row-actions {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: var(--row-height);
+  padding-inline: 24px 6px;
+  /* Fades the value out under the icons instead of cutting it. */
+  background: linear-gradient(to right, transparent, var(--bg-hover) 24px);
+}
+
+.row.is-focused .row-actions {
+  background: linear-gradient(to right, transparent, var(--bg-focus) 24px);
+}
+
+.row.is-matched .row-actions {
+  background: linear-gradient(to right, transparent, var(--bg-match) 24px);
+}
+
+.row.is-current-hit .row-actions {
+  background: linear-gradient(to right, transparent, var(--bg-match-current) 24px);
+}
+
+.row-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.row-actions button:hover {
+  color: var(--text);
+  background: var(--bg-active);
+}
+
+/* --- pinned ancestors ---------------------------------------------------- */
+
+.sticky {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  /* Stops short of the scrollbar, whose width JsonTree measures. */
+  inset-inline-end: var(--sb-gutter, 0px);
+  z-index: 2;
+  background: var(--bg-raised);
+  /* Reads as chrome, not as content: it sits on a raised surface, is separated
+     by a hard rule, and casts a shadow onto the rows it covers. */
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  pointer-events: none;
+}
+
+.sticky .row {
+  pointer-events: auto;
+  cursor: pointer;
+  background: transparent;
+  /* The accent rail runs the height of the whole stack, marking the branch. */
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.sticky .row:hover {
+  background: var(--bg-hover);
+}
+
+.sticky .jv-badge {
   background: var(--bg-sunken);
 }
 
-.badge[data-type='string'] {
-  color: var(--type-string);
-}
-.badge[data-type='number'] {
-  color: var(--type-number);
-}
-.badge[data-type='boolean'] {
-  color: var(--type-boolean);
-}
-.badge[data-type='null'] {
-  color: var(--type-null);
-}
-.badge[data-type='object'],
-.badge[data-type='array'] {
-  color: var(--type-container);
-}
-
-.count {
-  flex: 0 0 auto;
-  color: var(--text-faint);
-  font-size: 11px;
-}
-
-.value {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text);
-}
-
-.value[data-type='string'] {
-  color: var(--type-string);
-}
-.value[data-type='number'] {
-  color: var(--type-number);
-}
-.value[data-type='boolean'] {
-  color: var(--type-boolean);
-}
-.value[data-type='null'] {
-  color: var(--type-null);
-  font-style: italic;
-}
-.value[data-type='object'],
-.value[data-type='array'] {
+/* Context, not data: the previews step back so the eye goes to the keys. */
+.sticky .jv-value,
+.sticky .jv-stats {
   color: var(--text-faint);
 }
 
-.stats {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-muted);
-}
+/* --- "show more" --------------------------------------------------------- */
 
 .row.is-more {
   color: var(--text-muted);
@@ -151,10 +161,19 @@
 }
 
 .more-button {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-style: normal;
-  padding: 0 7px;
+  flex: 0 0 auto;
   height: 18px;
-  line-height: 16px;
+  padding: 0 7px;
+  font: 11px / 16px var(--font-ui);
+  font-style: normal;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.more-button:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
 }

@@ -7,12 +7,20 @@
   [attr.aria-activedescendant]="activeId()"
   (keydown)="onKeydown($event)"
 >
-  <cdk-virtual-scroll-viewport #viewport [itemSize]="rowHeight" class="viewport">
+  <cdk-virtual-scroll-viewport
+    #viewport
+    [itemSize]="rowHeight"
+    class="viewport"
+    (scrolledIndexChange)="store.topVisibleIndex.set($event)"
+    (mouseover)="onPointerOver($event)"
+    (mouseleave)="onPointerLeave()"
+  >
     <div
       *cdkVirtualFor="let row of rows(); let i = index; trackBy: trackByIndex"
       class="row"
       role="treeitem"
       [id]="'tree-row-' + i"
+      [attr.data-index]="i"
       [class.is-focused]="i === focusIndex()"
       [class.is-matched]="matched().has(i)"
       [class.is-current-hit]="i === currentHitRow() && matched().has(i)"
@@ -22,8 +30,9 @@
       [attr.aria-setsize]="row.siblingCount"
       [attr.aria-expanded]="row.ref ? isExpanded(i) : null"
       [attr.aria-selected]="i === focusIndex()"
-      [style.padding-inline-start.px]="8 + row.depth * 14"
+      [style.padding-inline-start.px]="indentOf(row)"
       (click)="onRowClick(i, row)"
+      (contextmenu)="onContextMenu($event, i)"
     >
       @if (row.kind === 'more') {
         <span class="more-text">{{ hiddenCount(row) }} more</span>
@@ -36,20 +45,105 @@
       } @else {
         <span class="twisty" aria-hidden="true">{{ twisty(row, i) }}</span>
 
-        <span class="key" [class.is-index]="isIndexKey(row)">{{ keyLabel(row) }}</span>
+        <span class="jv-key" [class.is-index]="isIndexKey(row)">{{ keyLabel(row) }}</span>
 
-        <span class="badge" [attr.data-type]="badge(row)">{{ typeOf(row) }}</span>
+        <span class="jv-badge" [attr.data-type]="badge(row)">{{ typeOf(row) }}</span>
 
         @if (row.ref && !row.meta) {
-          <span class="count">{{ sizeLabel(row) }}</span>
+          <span class="jv-count">{{ sizeLabel(row) }}</span>
         }
 
         @if (row.meta) {
-          <span class="stats">{{ statsText(row) }}</span>
+          <span class="jv-stats">{{ statsText(row) }}</span>
         } @else {
-          <span class="value" [attr.data-type]="badge(row)">{{ valueText(row) }}</span>
+          <span class="jv-value" [attr.data-type]="badge(row)">{{ valueText(row) }}</span>
+        }
+
+        <!-- Absolutely positioned: the row is exactly --row-height and must
+             never grow. Hover only -- the focused row's actions are in the
+             context bar, so showing both would put two clusters on screen at
+             once. Hidden from assistive tech because the tree is a single tab
+             stop; the same actions are on Shift+F10 and the context menu. -->
+        @if (i === hoveredIndex()) {
+          <span class="row-actions" aria-hidden="true">
+            <button
+              type="button"
+              tabindex="-1"
+              title="Copy path"
+              (click)="runAction($event, i, 'copy-path')"
+            >
+              <app-icon name="copy" [size]="12" />
+            </button>
+            <button
+              type="button"
+              tabindex="-1"
+              title="Copy JSON Pointer"
+              (click)="runAction($event, i, 'copy-pointer')"
+            >
+              <app-icon name="link" [size]="12" />
+            </button>
+            @if (store.view() === 'data') {
+              <button
+                type="button"
+                tabindex="-1"
+                title="Copy subtree"
+                (click)="runAction($event, i, 'copy-subtree')"
+              >
+                <app-icon name="braces" [size]="12" />
+              </button>
+            }
+            @if (row.ref) {
+              <button
+                type="button"
+                tabindex="-1"
+                title="Expand subtree"
+                (click)="runAction($event, i, 'expand-subtree')"
+              >
+                <app-icon name="expand" [size]="12" />
+              </button>
+            }
+            <button
+              type="button"
+              tabindex="-1"
+              [title]="store.view() === 'data' ? 'Show in structure view' : 'Show in data view'"
+              (click)="runAction($event, i, 'jump')"
+            >
+              <app-icon name="swap" [size]="12" />
+            </button>
+          </span>
         }
       }
     </div>
   </cdk-virtual-scroll-viewport>
+
+  <!-- The pinned ancestors. A SIBLING of the viewport, never projected into it:
+       inside, they would land in the CDK's transformed content wrapper and
+       scroll away with the rows. Duplicated as `aria-hidden`, because these
+       rows are already in the tree above and announcing them twice would
+       corrupt aria-setsize / aria-posinset. -->
+  @if (stickyIndices().length > 0) {
+    <div class="sticky" aria-hidden="true">
+      @for (index of stickyIndices(); track index) {
+        @let row = rows()[index];
+        <div
+          class="row is-sticky"
+          [style.padding-inline-start.px]="indentOf(row)"
+          [title]="'Go to ' + keyLabel(row)"
+          (click)="goToAncestor(index)"
+        >
+          <span class="twisty">{{ twisty(row, index) }}</span>
+          <span class="jv-key" [class.is-index]="isIndexKey(row)">{{ keyLabel(row) }}</span>
+          <span class="jv-badge" [attr.data-type]="badge(row)">{{ typeOf(row) }}</span>
+          @if (row.ref && !row.meta) {
+            <span class="jv-count">{{ sizeLabel(row) }}</span>
+          }
+          @if (row.meta) {
+            <span class="jv-stats">{{ statsText(row) }}</span>
+          } @else {
+            <span class="jv-value" [attr.data-type]="badge(row)">{{ valueText(row) }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
 </div>

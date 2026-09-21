@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 12px;
+  background: var(--bg-sunken);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.status strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dot {
+  color: var(--text-faint);
+  opacity: 0.6;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.timings {
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 760px) {
+  .timings {
+    display: none;
+  }
+}
