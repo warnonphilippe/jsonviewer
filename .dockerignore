@@ -1,0 +1,20 @@
+node_modules
+dist
+.angular
+
+# 59 Mo de fixture synthetique, happee par le glob d'assets d'angular.json
+# ({"glob": "**/*", "input": "public"}) : sans cette ligne elle part dans le
+# contexte de build et se retrouve dans l'image.
+public/fixtures/
+test/fixtures/large*.json
+
+scripts
+.vscode
+.claude
+.git
+.gitignore
+*.log
+start.sh
+deploy.sh
+Dockerfile
+.dockerignore

@@ -1,0 +1,55 @@
+<div
+  #tree
+  class="tree"
+  role="tree"
+  tabindex="0"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-activedescendant]="activeId()"
+  (keydown)="onKeydown($event)"
+>
+  <cdk-virtual-scroll-viewport #viewport [itemSize]="rowHeight" class="viewport">
+    <div
+      *cdkVirtualFor="let row of rows(); let i = index; trackBy: trackByIndex"
+      class="row"
+      role="treeitem"
+      [id]="'tree-row-' + i"
+      [class.is-focused]="i === focusIndex()"
+      [class.is-matched]="matched().has(i)"
+      [class.is-current-hit]="i === currentHitRow() && matched().has(i)"
+      [class.is-more]="row.kind === 'more'"
+      [attr.aria-level]="row.depth + 1"
+      [attr.aria-posinset]="row.indexInParent + 1"
+      [attr.aria-setsize]="row.siblingCount"
+      [attr.aria-expanded]="row.ref ? isExpanded(i) : null"
+      [attr.aria-selected]="i === focusIndex()"
+      [style.padding-inline-start.px]="8 + row.depth * 14"
+      (click)="onRowClick(i, row)"
+    >
+      @if (row.kind === 'more') {
+        <span class="more-text">{{ hiddenCount(row) }} more</span>
+        <button type="button" class="more-button" (click)="onMore(i, false, $event)">
+          Show more
+        </button>
+        <button type="button" class="more-button" (click)="onMore(i, true, $event)">
+          Show all {{ totalCount(row) }}
+        </button>
+      } @else {
+        <span class="twisty" aria-hidden="true">{{ twisty(row, i) }}</span>
+
+        <span class="key" [class.is-index]="isIndexKey(row)">{{ keyLabel(row) }}</span>
+
+        <span class="badge" [attr.data-type]="badge(row)">{{ typeOf(row) }}</span>
+
+        @if (row.ref && !row.meta) {
+          <span class="count">{{ sizeLabel(row) }}</span>
+        }
+
+        @if (row.meta) {
+          <span class="stats">{{ statsText(row) }}</span>
+        } @else {
+          <span class="value" [attr.data-type]="badge(row)">{{ valueText(row) }}</span>
+        }
+      }
+    </div>
+  </cdk-virtual-scroll-viewport>
+</div>

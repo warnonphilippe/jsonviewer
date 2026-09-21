@@ -1,0 +1,677 @@
+{
+ "t_field_group_token": {
+  "count": 95,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "category_mea": [
+    "string"
+   ],
+   "label_unit": [
+    "string"
+   ],
+   "count_orig": [
+    "string"
+   ],
+   "attributex": [
+    "string"
+   ],
+   "item_marke": [
+    "string"
+   ],
+   "phas": [
+    "string"
+   ],
+   "position_lab": [
+    "string"
+   ],
+   "stage_count_ori": [
+    "number"
+   ],
+   "target_at": [
+    "null"
+   ],
+   "bucket_item_ma": [
+    "number"
+   ],
+   "segment_phase_categ": [
+    "string"
+   ],
+   "summary_position_label_u": [
+    "string"
+   ]
+  }
+ },
+ "t_attribute_fieldx": {
+  "count": 13,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "index_targetx": [
+    "string"
+   ],
+   "parameter_buc": [
+    "string"
+   ],
+   "record_segment_ph": [
+    "string"
+   ],
+   "state_summary_pos": [
+    "string"
+   ],
+   "descriptor_cod": [
+    "string"
+   ],
+   "level_index_ta": [
+    "string"
+   ],
+   "source_paramet": [
+    "string"
+   ],
+   "sample_recordx": [
+    "string"
+   ],
+   "block_state_summ": [
+    "string"
+   ]
+  }
+ },
+ "t_target_attributex": {
+  "count": 2,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "entry_bloc": [
+    "string"
+   ],
+   "ratio_deta": [
+    "string"
+   ],
+   "property_v": [
+    "string"
+   ],
+   "group_toke": [
+    "string"
+   ],
+   "channel_referen": [
+    "number"
+   ]
+  }
+ },
+ "t_index_target_attribute": {
+  "count": 21,
+  "columns": {
+   "label_unit_r": [
+    "string"
+   ],
+   "count_origin_pr": [
+    "number"
+   ]
+  }
+ },
+ "t_level_index_tar": {
+  "count": 13,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "state_summary": [
+    "string"
+   ],
+   "descriptor_co": [
+    "string"
+   ],
+   "level_index_targe": [
+    "string"
+   ],
+   "source_parameterx": [
+    "string"
+   ],
+   "sample_recordx": [
+    "number"
+   ],
+   "block_state_summ": [
+    "string"
+   ],
+   "detail_descriptor_code": [
+    "string"
+   ],
+   "value_level_index_ta": [
+    "string"
+   ],
+   "token_source_parame": [
+    "number"
+   ],
+   "reference_samplex": [
+    "string"
+   ],
+   "entry_block_sta": [
+    "string"
+   ],
+   "ratio_detail": [
+    "string"
+   ],
+   "property_value": [
+    "string"
+   ],
+   "group_token_sour": [
+    "string"
+   ],
+   "channe": [
+    "string"
+   ],
+   "measure_entry_bl": [
+    "string"
+   ]
+  }
+ },
+ "t_value_level_index": {
+  "count": 376,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "group_token_s": [
+    "string"
+   ],
+   "channel_refer": [
+    "string"
+   ],
+   "measure_entry_blo": [
+    "string"
+   ],
+   "unit_ratio_detail": [
+    "string"
+   ],
+   "origin_propertyx": [
+    "string"
+   ],
+   "fie": [
+    "string"
+   ],
+   "marker_channel_refe": [
+    "number"
+   ],
+   "category_measure_en": [
+    "number"
+   ]
+  }
+ },
+ "t_property_value_level_i": {
+  "count": 101,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "position_labe": [
+    "string"
+   ],
+   "stage_count_o": [
+    "string"
+   ],
+   "target_attributex": [
+    "string"
+   ],
+   "bucket_item_marke": [
+    "string"
+   ],
+   "segment_ph": [
+    "string"
+   ],
+   "summary_po": [
+    "string"
+   ],
+   "code_stage": [
+    "string"
+   ],
+   "index_targ": [
+    "string"
+   ],
+   "parame": [
+    "string"
+   ],
+   "record_segmentx": [
+    "number"
+   ],
+   "state_summary_posi": [
+    "number"
+   ],
+   "descriptor_code_stag": [
+    "number"
+   ],
+   "level_index_targ": [
+    "string"
+   ]
+  }
+ },
+ "t_origin_property_value_leve": {
+  "count": 275,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "source_parame": [
+    "string"
+   ],
+   "sample_record": [
+    "string"
+   ],
+   "block_state_summa": [
+    "string"
+   ],
+   "detail_descriptor": [
+    "string"
+   ],
+   "value_leve": [
+    "string"
+   ],
+   "token_sour": [
+    "string"
+   ],
+   "referencex": [
+    "string"
+   ],
+   "entry_bloc": [
+    "string"
+   ],
+   "ratiox": [
+    "string"
+   ],
+   "property_valuex": [
+    "number"
+   ],
+   "group_token_source": [
+    "number"
+   ],
+   "channel_reference_sa": [
+    "number"
+   ],
+   "measure_entry_bl": [
+    "string"
+   ]
+  }
+ },
+ "t_count_orig": {
+  "count": 36,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "unit_ratio_de": [
+    "string"
+   ],
+   "origin_proper": [
+    "string"
+   ],
+   "field_group_token": [
+    "string"
+   ],
+   "marker_channel_re": [
+    "string"
+   ],
+   "category_measure": [
+    "string"
+   ],
+   "label_un": [
+    "string"
+   ],
+   "count_o": [
+    "string"
+   ],
+   "attribute": [
+    "string"
+   ],
+   "item_markerx": [
+    "string"
+   ],
+   "phase_catego": [
+    "string"
+   ],
+   "position_lab": [
+    "string"
+   ],
+   "stage_countx": [
+    "string"
+   ],
+   "target_attribute": [
+    "string"
+   ],
+   "bucket_item_mark": [
+    "string"
+   ],
+   "segment_phase_ca": [
+    "string"
+   ],
+   "summary_position": [
+    "string"
+   ],
+   "code_stage": [
+    "string"
+   ],
+   "index_ta": [
+    "string"
+   ],
+   "parameter_buck": [
+    "string"
+   ],
+   "record_segme": [
+    "string"
+   ],
+   "state_summary_p": [
+    "string"
+   ],
+   "descriptor_cod": [
+    "string"
+   ],
+   "level_index_t": [
+    "string"
+   ],
+   "source_para": [
+    "string"
+   ],
+   "sample_recordx": [
+    "string"
+   ],
+   "block_state_s": [
+    "string"
+   ],
+   "detail_descriptor_code_st": [
+    "string"
+   ],
+   "value_level": [
+    "string"
+   ],
+   "token_source_par": [
+    "string"
+   ],
+   "referencex": [
+    "string"
+   ],
+   "entry_block_state_su": [
+    "number"
+   ],
+   "ratio_detail_descriptor_code_stage_cou": [
+    "number"
+   ],
+   "property_value_level_index_t": [
+    "number"
+   ],
+   "group_token_source": [
+    "number"
+   ],
+   "channel_r": [
+    "null"
+   ],
+   "measure_e": [
+    "null"
+   ],
+   "unit_ratiox": [
+    "null"
+   ],
+   "origin_prop": [
+    "null"
+   ],
+   "fiel": [
+    "number"
+   ]
+  }
+ },
+ "t_stage_countx": {
+  "count": 17974,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "bucket_item_m": [
+    "string"
+   ],
+   "segment_phase": [
+    "string"
+   ],
+   "summary_positionx": [
+    "string"
+   ],
+   "code_stage_countx": [
+    "string"
+   ],
+   "index_target_att": [
+    "string"
+   ],
+   "parameter_bucket_i": [
+    "string"
+   ],
+   "record_segmen": [
+    "string"
+   ],
+   "state_summary_positi": [
+    "string"
+   ],
+   "descriptor_code_s": [
+    "string"
+   ],
+   "level_i": [
+    "string"
+   ],
+   "sou": [
+    "string"
+   ],
+   "sample": [
+    "string"
+   ],
+   "block_s": [
+    "string"
+   ],
+   "detail_descr": [
+    "string"
+   ],
+   "value": [
+    "string"
+   ],
+   "token": [
+    "string"
+   ],
+   "refere": [
+    "string"
+   ],
+   "entry_bl": [
+    "string"
+   ],
+   "rati": [
+    "string"
+   ],
+   "property_value_level_index_tar": [
+    "string"
+   ],
+   "group_token_source_paramete": [
+    "string"
+   ],
+   "channel_reference_sample_recor": [
+    "string"
+   ],
+   "measure_entry_block_state": [
+    "string"
+   ],
+   "unit_ratio_detail_descrip": [
+    "string"
+   ],
+   "origin_property_value_le": [
+    "string"
+   ],
+   "field_group_token_source_param": [
+    "string"
+   ],
+   "marker_channel_reference_sa": [
+    "string"
+   ],
+   "category_measure_entryx": [
+    "string"
+   ],
+   "label_unit_ratio_detail_descri": [
+    "string"
+   ],
+   "count_origin_property_value": [
+    "string"
+   ],
+   "attribute_field_group_token_so": [
+    "string"
+   ],
+   "item_marker_channel_refer": [
+    "string"
+   ],
+   "phase_category_measure_en": [
+    "string"
+   ],
+   "position_label_unit_rati": [
+    "string"
+   ],
+   "stage_count_origin_property_va": [
+    "string"
+   ],
+   "target_attribute_field_grou": [
+    "string"
+   ],
+   "bucket_item_marker_chan": [
+    "string"
+   ],
+   "segment_phase_c": [
+    "string"
+   ],
+   "summ": [
+    "number"
+   ]
+  }
+ },
+ "t_code_stage_c": {
+  "count": 17974,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "detail_descri": [
+    "string"
+   ],
+   "value_level_i": [
+    "string"
+   ],
+   "token_source_para": [
+    "string"
+   ],
+   "reference_samplex": [
+    "string"
+   ],
+   "entry_block_stat": [
+    "string"
+   ],
+   "ratiox": [
+    "string"
+   ],
+   "propert": [
+    "string"
+   ],
+   "group_token_source_param": [
+    "string"
+   ],
+   "channel_reference_sa": [
+    "null"
+   ],
+   "measur": [
+    "string"
+   ],
+   "unit_ratio": [
+    "string"
+   ],
+   "origin_prope": [
+    "string"
+   ],
+   "field_group_token_sourc": [
+    "string"
+   ],
+   "marker_channel_referenc": [
+    "string"
+   ],
+   "category_meas": [
+    "string"
+   ],
+   "label_unit_ratio_de": [
+    "string"
+   ],
+   "coun": [
+    "number"
+   ]
+  }
+ },
+ "t_descriptor_cod": {
+  "count": 56865,
+  "columns": {
+   "id": [
+    "number"
+   ],
+   "uuid": [
+    "string"
+   ],
+   "marker_channe": [
+    "string"
+   ],
+   "category_meas": [
+    "string"
+   ],
+   "label_unit_ratiox": [
+    "string"
+   ],
+   "count_origin_prop": [
+    "string"
+   ],
+   "attribute_fieldx": [
+    "string"
+   ],
+   "item_m": [
+    "string"
+   ],
+   "phase_c": [
+    "number"
+   ],
+   "position_labelx": [
+    "number"
+   ],
+   "stage_count_origin_property_v": [
+    "number"
+   ],
+   "targ": [
+    "number"
+   ]
+  }
+ }
+}
