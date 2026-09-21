@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import { Row } from '../core/flatten';
 import { badgeFor, formatScalar, previewContainer } from '../core/preview';
-import { MAX_STICKY_LEVELS, stickyPlan } from '../core/sticky';
 import { scrollTargetFor } from '../core/scroll-plan';
 import { ROW_HEIGHT, ViewerStore } from '../state/viewer.store';
 import { JsonDocumentStore } from '../state/json-document.store';
@@ -83,23 +82,7 @@ export class JsonTree {
    */
   protected readonly hoveredIndex = signal(-1);
 
-  /** Rows that fit on screen. Measured, so it follows a window resize. */
-  private readonly viewportRows = signal(30);
-
-  /**
-   * How many ancestors may be pinned right now: the hard cap, but never more
-   * than half the viewport, so a short window is not buried under its own
-   * breadcrumbs.
-   */
-  protected readonly maxSticky = computed(() =>
-    this.store.stickyEnabled()
-      ? Math.min(MAX_STICKY_LEVELS, Math.max(0, Math.floor(this.viewportRows() / 2)))
-      : 0,
-  );
-
-  protected readonly stickyIndices = computed(() =>
-    stickyPlan(this.rows(), this.store.topVisibleIndex(), this.maxSticky()),
-  );
+  protected readonly stickyIndices = this.store.stickyIndices;
 
   /** The row the current search hit sits on, for a stronger highlight. */
   protected readonly currentHitRow = computed(() => {
@@ -143,7 +126,7 @@ export class JsonTree {
       // scrollbars and ~15px under classic ones.
       const measure = () => {
         const height = element.clientHeight;
-        if (height > 0) this.viewportRows.set(Math.max(1, Math.floor(height / ROW_HEIGHT)));
+        if (height > 0) this.store.viewportRows.set(Math.max(1, Math.floor(height / ROW_HEIGHT)));
         this.host.nativeElement.style.setProperty(
           '--sb-gutter',
           `${element.offsetWidth - element.clientWidth}px`,
@@ -313,8 +296,8 @@ export class JsonTree {
       this.rows(),
       index,
       this.store.topVisibleIndex(),
-      this.viewportRows(),
-      this.maxSticky(),
+      this.store.viewportRows(),
+      this.store.maxStickyLevels(),
     );
     if (target !== null) viewport.scrollToIndex(target);
   }
@@ -349,7 +332,7 @@ export class JsonTree {
     const current = this.focusIndex();
     const index = current < 0 ? 0 : current;
     const row = rows[index];
-    const perScreen = Math.max(1, this.viewportRows() - 1);
+    const perScreen = Math.max(1, this.store.viewportRows() - 1);
 
     switch (event.key) {
       case 'ArrowDown':

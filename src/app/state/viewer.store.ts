@@ -38,6 +38,7 @@ import {
 } from '../core/path';
 import { DEFAULT_SEARCH, NO_RESULT, SearchOptions, SearchResult, searchJson } from '../core/search';
 import { maxRowsFor } from '../core/scroll-limits';
+import { MAX_STICKY_LEVELS, stickyPlan } from '../core/sticky';
 import { JsonDocumentStore } from './json-document.store';
 
 export type ViewKind = 'data' | 'structure';
@@ -86,6 +87,35 @@ export class ViewerStore {
 
   /** Whether the pinned-ancestor stack is shown. Toggled from the overflow menu. */
   readonly stickyEnabled = signal(true);
+
+  /** How many rows fit on screen. Measured and written by the tree. */
+  readonly viewportRows = signal(30);
+
+  /**
+   * How many ancestors may be pinned right now: the hard cap, but never more
+   * than half the viewport, so a short window is not buried under its own
+   * breadcrumbs.
+   */
+  readonly maxStickyLevels = computed(() =>
+    this.stickyEnabled()
+      ? Math.min(MAX_STICKY_LEVELS, Math.max(0, Math.floor(this.viewportRows() / 2)))
+      : 0,
+  );
+
+  /** The rows pinned above the viewport. */
+  readonly stickyIndices = computed(() =>
+    stickyPlan(this.rows(), this.topVisibleIndex(), this.maxStickyLevels()),
+  );
+
+  /**
+   * The first row the stack does not cover -- what the viewport actually shows
+   * you, and therefore what the breadcrumb should describe.
+   */
+  readonly firstReadableIndex = computed(() => {
+    const rows = this.rows();
+    if (rows.length === 0) return -1;
+    return Math.min(rows.length - 1, this.topVisibleIndex() + this.stickyIndices().length);
+  });
 
   /**
    * A request to bring a row into view. The store cannot scroll -- only the
@@ -180,12 +210,13 @@ export class ViewerStore {
   });
 
   /**
-   * Which row the breadcrumb describes: the cursor when there is one, else
-   * whatever is at the top of the viewport -- so the trail is never empty while
-   * you scroll without touching the keyboard.
+   * Which row the breadcrumb describes: the cursor when there is one, else the
+   * first row the pinned stack does not cover -- so the trail is never empty
+   * while you scroll, and never describes a row hidden behind the stack while
+   * the stack describes a different one.
    */
   readonly breadcrumbIndex = computed(() =>
-    this.focusIndex() >= 0 ? this.focusIndex() : this.topVisibleIndex(),
+    this.focusIndex() >= 0 ? this.focusIndex() : this.firstReadableIndex(),
   );
 
   /** Row indices from the root down to and including `breadcrumbIndex`. */

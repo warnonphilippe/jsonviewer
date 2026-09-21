@@ -9,6 +9,9 @@ public/fixtures/
 test/fixtures/large*.json
 
 scripts
+
+# 1.7 Mo de captures pour le README : rien a faire dans l'image.
+docs
 .vscode
 .claude
 .git
