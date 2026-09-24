@@ -374,6 +374,54 @@ the lockfile's. The 59 MB fixture in `public/fixtures/` is excluded by
 The image is also meant to be mounted by a wider `docker compose` stack, which
 is why the examples above map it to port **5176**.
 
+### As a desktop application
+
+`desktop/` wraps the production build in Electron: an application that opens
+from the Dock or the taskbar, with no Docker, no server and no browser to
+start. It is Chromium underneath, so the size limits and memory figures above
+hold unchanged, and the page is the same build the container serves — no
+preload, no Node in the page, nothing added to the Angular code.
+
+| Command | Produces |
+|---|---|
+| `./desktop/build.sh --install` | `JSON Viewer.app` for this Mac, copied to `/Applications` |
+| `./desktop/build.sh --dmg` | `desktop/out/JSON Viewer-<version>.dmg`, to install on another Mac |
+| `./desktop/build.sh --windows` | `desktop/out/JSON Viewer-<version>-win32-x64.zip`, with `JSON Viewer.exe` |
+
+All three are built on a Mac. Without an option, the app is only left in
+`desktop/out/`; `--install` and `--dmg` combine. After installing, open the
+app once, then right-click its Dock icon › Options › Keep in Dock.
+
+- **This Mac.** Packaged for its own architecture, signed ad hoc, and copied to
+  `/Applications` (or `~/Applications` when `/Applications` is not writable).
+  Built where it runs, it opens directly. About 290 MB, nearly all of it the
+  Electron runtime; the viewer itself is 280 KB.
+- **Another Mac.** The DMG (~220 MB) holds a universal app — Intel and Apple
+  Silicon, macOS 13 or later — an `Applications` shortcut to drag it onto, and
+  a `LISEZ-MOI.txt`. The app is not notarised, so macOS blocks its first launch
+  on a Mac that downloaded it: open it once, then System Settings › Privacy &
+  Security › Open Anyway — or clear the quarantine flag:
+
+  ```bash
+  xattr -dr com.apple.quarantine "/Applications/JSON Viewer.app"
+  ```
+
+- **Windows 10 and 11, 64-bit.** The zip (~160 MB) holds a folder to extract —
+  `JSON Viewer.exe` needs the DLLs next to it — and a `LISEZ-MOI.txt`. The exe
+  is not signed, so SmartScreen warns on first launch: More info › Run anyway.
+  It is built from macOS without Wine, and its `resources/app.asar` is
+  byte-identical to the macOS build's.
+
+A second launch while the app is running opens another window in it, rather
+than a second process, which would find the profile locked and could not save
+the theme.
+
+Electron is installed in `desktop/node_modules` on its own, so neither the
+Angular project nor the image depends on it. `npm start` in `desktop/` runs
+the window without packaging it, on `desktop/app/` — the copy of the build that
+the last `build.sh` left there. The icons are generated from `desktop/icon.svg`
+by `desktop/icons.sh`.
+
 ### Checking against a real large file
 
 The reference export is **not** in this repository: it has no business in git. Point the verification script at it by path

@@ -10,6 +10,10 @@ test/fixtures/large*.json
 
 scripts
 
+# L'application macOS (Electron) : ni ses sources, ni ses node_modules, ni ses
+# bundles n'ont leur place dans l'image.
+desktop
+
 # 1.7 Mo de captures pour le README : rien a faire dans l'image.
 docs
 .vscode

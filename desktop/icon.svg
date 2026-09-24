@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Source of icon.icns and icon.ico (see icons.sh). The macOS icon grid: an 824 px squircle-ish tile
+       centred on the 1024 canvas, leaving room for the system shadow. Colours
+       are the viewer's dark palette (src/styles.css): surface, accent, then
+       the key / string / number syntax colours for the three tree rows. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262b35"/>
+      <stop offset="1" stop-color="#0f1215"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#tile)"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="184.5" fill="none" stroke="#3a4250" stroke-width="1"/>
+
+  <g fill="none" stroke="#5b8cf5" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
+    <!-- { -->
+    <path d="M330 262 C 270 262 262 290 262 340 L 262 450 C 262 490 245 505 205 512 C 245 519 262 534 262 574 L 262 684 C 262 734 270 762 330 762"/>
+    <!-- } -->
+    <path d="M694 262 C 754 262 762 290 762 340 L 762 450 C 762 490 779 505 819 512 C 779 519 762 534 762 574 L 762 684 C 762 734 754 762 694 762"/>
+  </g>
+
+  <g stroke-width="40" stroke-linecap="round">
+    <line x1="360" y1="402" x2="500" y2="402" stroke="#c9a2f7"/>
+    <line x1="580" y1="402" x2="664" y2="402" stroke="#5ac795"/>
+    <line x1="410" y1="512" x2="520" y2="512" stroke="#c9a2f7"/>
+    <line x1="600" y1="512" x2="664" y2="512" stroke="#eda06a"/>
+    <line x1="410" y1="622" x2="480" y2="622" stroke="#c9a2f7"/>
+    <line x1="560" y1="622" x2="664" y2="622" stroke="#5ac795"/>
+  </g>
+</svg>

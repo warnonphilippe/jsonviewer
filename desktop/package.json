@@ -1,0 +1,16 @@
+{
+  "name": "json-viewer-desktop",
+  "productName": "JSON Viewer",
+  "version": "1.1.1",
+  "description": "The JSON viewer as a macOS application",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "./build.sh"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.4.5"
+  }
+}

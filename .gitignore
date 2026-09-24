@@ -2,12 +2,16 @@
 
 # Compiled output
 /dist
+# Application macOS : copie du build et bundles produits par desktop/build.sh.
+/desktop/app
+/desktop/out
 /tmp
 /out-tsc
 /bazel-out
 
 # Node
 /node_modules
+/desktop/node_modules
 
 # Le lockfile n'est pas suivi, mais il reste requis en local : `npm ci`
 # (start.sh) et le `docker build` (Dockerfile) s'appuient dessus.
