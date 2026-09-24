@@ -2,7 +2,8 @@
  * Runs the pure core against a real, large JSON file and checks the performance
  * budgets from the plan.
  *
- * The reference export is NOT part of this repository: it is too large for git. Point this at it by path instead.
+ * The reference export is NOT part of this repository: it is too large for
+ * git. Point this at it by path instead.
  *
  *   node scripts/verify-real-file.mjs "/path/to/export.json"
  */

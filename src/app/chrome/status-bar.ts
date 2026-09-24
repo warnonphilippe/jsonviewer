@@ -6,7 +6,7 @@ import { ViewerStore } from '../state/viewer.store';
  * The document's measurements.
  *
  * The file's identity moved up to the toolbar chip, so what is left here is
- * what the numbers say about it -- which is the point of opening a 56 MB export
+ * what the numbers say about it -- which is the point of opening a 60 MB export
  * in the first place.
  */
 @Component({

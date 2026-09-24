@@ -3,9 +3,9 @@
  * export, and entirely synthetic values.
  *
  * Why this exists rather than a copy of the real file:
- *   - the real export is ~56 MB, which has no business in a git repository;
- *   - real data must not be copied into a
- *     project tree, a test fixture or a CI artifact.
+ *   - the real export is ~60 MB, which has no business in a git repository;
+ *   - real data must not be copied into a project tree, a test fixture or a
+ *     CI artifact.
  *
  * `shape.json` alongside this script carries the export's STRUCTURE only: how
  * many tables, how many records in each, how many columns and of which types.

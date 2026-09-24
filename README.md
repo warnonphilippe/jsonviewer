@@ -2,7 +2,7 @@
 
 A read-only, browser-based viewer for large JSON and NDJSON files. Built for export
 files that text editors and pretty-printers cannot navigate — the reference case
-is a **56 MB / 2,054,886-line** export containing **1,867,216 JSON nodes**.
+is a **~60 MB / ~2-million-line** export containing **~1.9 million JSON nodes**.
 
 Angular 22 (dev server: Vite 8, via `@angular/build:application`).
 `@angular/cdk` for virtual scrolling; no other runtime dependency.
@@ -220,7 +220,7 @@ browser.
 
 # How it is built
 
-## Measured behaviour on the 56 MB reference file
+## Measured behaviour on the ~60 MB reference file
 
 | Operation | Measured |
 |---|---|
@@ -424,8 +424,8 @@ by `desktop/icons.sh`.
 
 ### Checking against a real large file
 
-The reference export is **not** in this repository: it has no business in git. Point the verification script at it by path
-instead. It checks every performance budget above and every structural
+The reference export is **not** in this repository: a file that size has no
+business in git. Point the verification script at it by path instead. It checks every performance budget above and every structural
 invariant:
 
 ```bash
