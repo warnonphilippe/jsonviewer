@@ -1,32 +1,19 @@
 <header class="toolbar">
   <span class="mark" aria-hidden="true">&#123;&#125;</span>
 
-  @if (doc.meta(); as meta) {
-    <div class="chip file-chip">
-      <app-icon name="file" [size]="13" />
-      <span class="file-name" [title]="meta.fileName">{{ meta.fileName }}</span>
-      <span class="file-size">{{ fileSize() }}</span>
-      <span class="chip-sep"></span>
-      <span class="file-format">{{ formatLabel() }}</span>
-      <button
-        type="button"
-        class="chip-close"
-        title="Close the file and free its memory"
-        aria-label="Close file"
-        (click)="closeFile.emit()"
-      >
-        <app-icon name="close" [size]="11" />
-      </button>
-    </div>
-  } @else {
+  @if (!doc.hasDocument()) {
     <span class="wordmark">JSON viewer</span>
   }
 
-  <label class="open-button" [class.is-compact]="doc.hasDocument()">
-    <input type="file" [attr.accept]="accept" (change)="onFileInput($event)" />
+  <label
+    class="open-button"
+    [class.is-compact]="doc.hasDocument()"
+    [attr.title]="doc.hasDocument() ? 'Open files in new tabs' : null"
+  >
+    <input type="file" multiple [attr.accept]="accept" (change)="onFileInput($event)" />
     @if (doc.hasDocument()) {
       <app-icon name="file" [size]="13" />
-      <span class="sr-only">Open another file</span>
+      <span class="sr-only">Open files in new tabs</span>
     } @else {
       Open file&hellip;
     }

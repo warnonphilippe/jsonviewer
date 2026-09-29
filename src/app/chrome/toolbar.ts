@@ -13,13 +13,15 @@ import { ContextMenu, MenuItem } from '../ui/context-menu';
 import { JsonDocumentStore } from '../state/json-document.store';
 import { ViewKind, ViewerStore } from '../state/viewer.store';
 import { ThemeStore } from '../state/theme.store';
-import { describeSize } from '../core/load-json';
-
-/** The file types the picker offers. Content, not extension, decides the rest. */
-const ACCEPT = '.json,.ndjson,.jsonl,.jsonlines,application/json,text/json,application/x-ndjson';
+import { ShellStore } from '../state/shell.store';
+import { ACCEPTED_TYPES } from '../core/load-json';
 
 /**
- * The application bar: what is open, which view, and what you are searching for.
+ * A tab's application bar: which view, and what you are searching for.
+ *
+ * What is open is the tab strip's to say now -- the file's name is on its tab,
+ * its size and format in the tab's tooltip and the status bar -- so this bar
+ * starts with the picker, which opens files in new tabs.
  *
  * Search is a permanent field rather than a drawer. On a two-million-line
  * export it is the primary tool, and a drawer that has to be summoned before
@@ -41,12 +43,13 @@ export class AppToolbar {
   protected readonly doc = inject(JsonDocumentStore);
   protected readonly store = inject(ViewerStore);
   protected readonly themes = inject(ThemeStore);
+  private readonly shell = inject(ShellStore);
 
-  readonly openFile = output<File>();
+  readonly openFile = output<File[]>();
   readonly closeFile = output<void>();
   readonly showShortcuts = output<void>();
 
-  protected readonly accept = ACCEPT;
+  protected readonly accept = ACCEPTED_TYPES;
 
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('search');
 
@@ -56,19 +59,6 @@ export class AppToolbar {
     x: number;
     y: number;
   } | null>(null);
-
-  protected readonly fileSize = computed(() => {
-    const meta = this.doc.meta();
-    return meta ? describeSize(meta.byteSize) : '';
-  });
-
-  protected readonly formatLabel = computed(() => {
-    const meta = this.doc.meta();
-    if (!meta) return '';
-    return meta.format === 'ndjson'
-      ? `NDJSON · ${(meta.recordCount ?? 0).toLocaleString()} records`
-      : 'JSON';
-  });
 
   /** "3 of 1,284 · 67 ms", or the empty string when nothing is being searched. */
   protected readonly searchSummary = computed(() => {
@@ -106,12 +96,12 @@ export class AppToolbar {
       {
         id: 'sticky',
         label: 'Pin ancestors while scrolling',
-        checked: this.store.stickyEnabled(),
+        checked: this.shell.stickyEnabled(),
         separatorBefore: true,
       },
       { id: 'shortcuts', label: 'Keyboard shortcuts', icon: 'keyboard', separatorBefore: true },
       ...(this.doc.hasDocument()
-        ? [{ id: 'close', label: 'Close file', icon: 'close' as const }]
+        ? [{ id: 'close', label: 'Close tab', icon: 'close' as const }]
         : []),
     ];
   });
@@ -120,10 +110,10 @@ export class AppToolbar {
 
   protected onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
     // Clear it so choosing the same file again still fires a change.
     input.value = '';
-    if (file) this.openFile.emit(file);
+    if (files.length > 0) this.openFile.emit(files);
   }
 
   // --- the views -----------------------------------------------------------
@@ -165,6 +155,11 @@ export class AppToolbar {
 
   // --- popovers ------------------------------------------------------------
 
+  /** Called by the pane when its tab goes to the background. */
+  dismissPopover(): void {
+    this.popover.set(null);
+  }
+
   protected togglePopover(kind: 'options' | 'overflow', event: MouseEvent): void {
     if (this.popover()?.kind === kind) {
       this.popover.set(null);
@@ -192,7 +187,7 @@ export class AppToolbar {
         this.themes.set('dark');
         break;
       case 'sticky':
-        this.store.stickyEnabled.update((on) => !on);
+        this.shell.stickyEnabled.update((on) => !on);
         return;
       case 'shortcuts':
         this.showShortcuts.emit();

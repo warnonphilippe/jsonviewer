@@ -28,6 +28,10 @@ export const MAX_TEXT_LENGTH = 536_870_888;
 /** Above this, warn before committing to the load. */
 export const SOFT_WARN_BYTES = 200 * 1024 * 1024;
 
+/** What the file picker offers. Content, not extension, decides the rest. */
+export const ACCEPTED_TYPES =
+  '.json,.ndjson,.jsonl,.jsonlines,application/json,text/json,application/x-ndjson';
+
 export type LoadErrorKind = 'empty' | 'too-large' | 'syntax' | 'read-failed' | 'out-of-memory';
 
 /** How the document was read. NDJSON documents are exposed as an array. */
@@ -332,9 +336,14 @@ export function preflight(file: File): LoadError | null {
   return null;
 }
 
-/** True when the user should be warned before committing to the load. */
-export function needsSizeWarning(file: File): boolean {
-  return file.size > SOFT_WARN_BYTES;
+/**
+ * True when the user should be warned before committing to the load.
+ *
+ * `openBytes` is what the other tabs already hold. Every open document keeps
+ * its parsed graph, so the budget belongs to the window, not to one file.
+ */
+export function needsSizeWarning(file: File, openBytes = 0): boolean {
+  return openBytes + file.size > SOFT_WARN_BYTES;
 }
 
 /** A human-readable size, for the status bar and warnings. */

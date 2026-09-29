@@ -2,9 +2,12 @@
  * View state: which view is showing, what is expanded in each, where the
  * keyboard cursor is, and the current search.
  *
- * Each view keeps its own expansion state, so switching tabs does not lose your
- * place, and jumping between the two lands you somewhere related rather than
- * back at the top.
+ * Each view keeps its own expansion state, so switching between Data and
+ * Structure does not lose your place, and jumping between the two lands you
+ * somewhere related rather than back at the top.
+ *
+ * There is one per tab, beside that tab's `JsonDocumentStore` (see
+ * `TabsStore`), so every open file keeps its own place too.
  */
 
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
@@ -40,6 +43,7 @@ import { DEFAULT_SEARCH, NO_RESULT, SearchOptions, SearchResult, searchJson } fr
 import { maxRowsFor } from '../core/scroll-limits';
 import { MAX_STICKY_LEVELS, stickyPlan } from '../core/sticky';
 import { JsonDocumentStore } from './json-document.store';
+import { ShellStore } from './shell.store';
 
 export type ViewKind = 'data' | 'structure';
 
@@ -63,7 +67,8 @@ export const REVEAL_STEP = 10_000;
  */
 export const EXPAND_SUBTREE_MAX = 100_000;
 
-@Injectable({ providedIn: 'root' })
+/** Provided per tab, never at the root: see `TabsStore`. */
+@Injectable()
 export class ViewerStore {
   private readonly doc = inject(JsonDocumentStore);
 
@@ -85,8 +90,8 @@ export class ViewerStore {
    */
   readonly topVisibleIndex = signal(0);
 
-  /** Whether the pinned-ancestor stack is shown. Toggled from the overflow menu. */
-  readonly stickyEnabled = signal(true);
+  /** Whether the pinned-ancestor stack is shown. A window-wide preference. */
+  readonly stickyEnabled = inject(ShellStore).stickyEnabled.asReadonly();
 
   /** How many rows fit on screen. Measured and written by the tree. */
   readonly viewportRows = signal(30);

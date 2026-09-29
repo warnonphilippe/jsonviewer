@@ -1,62 +1,27 @@
 <div class="shell">
-  <app-toolbar
-    (openFile)="open($event)"
-    (closeFile)="close()"
-    (showShortcuts)="shortcutsOpen.set(true)"
-  />
-
-  @if (doc.hasDocument()) {
-    <app-breadcrumb />
+  @if (!tabs.isEmpty()) {
+    <app-tab-strip />
   }
 
-  @if (store.truncated()) {
-    <div class="banner" role="status">
-      <app-icon name="warning" [size]="13" />
-      <span>
-        Stopped after {{ store.rows().length.toLocaleString() }} rows. A browser cannot scroll a
-        list taller than this reliably, so the rest is hidden.
-      </span>
-      <button type="button" class="btn-ghost" (click)="store.collapseAll()">Collapse all</button>
-    </div>
-  }
-
-  <main class="body">
-    @if (doc.isLoading()) {
-      <div class="centered">
-        <div class="spinner" aria-hidden="true"></div>
-        <p aria-live="polite">{{ phaseLabel() }}</p>
-      </div>
-    } @else if (doc.error(); as error) {
-      <div class="centered">
-        <app-error-panel [error]="error" (dismissed)="close()" />
-      </div>
-    } @else if (doc.hasDocument()) {
-      <app-json-tree (rowMenu)="openRowMenu($event)" />
-    } @else {
-      <div class="centered">
-        <app-empty-state />
+  <main class="panes">
+    @for (tab of tabs.tabs(); track tab.id) {
+      @let active = tab.id === tabs.activeId();
+      <div
+        class="pane"
+        [class.is-active]="active"
+        [id]="'tab-panel-' + tab.id"
+        [attr.role]="tabs.isEmpty() ? null : 'tabpanel'"
+        [attr.aria-labelledby]="tabs.isEmpty() ? null : 'tab-' + tab.id"
+        [attr.inert]="active ? null : ''"
+      >
+        <ng-container *ngComponentOutlet="pane; injector: tab.injector" />
       </div>
     }
   </main>
 
-  @if (doc.hasDocument()) {
-    <app-status-bar />
-  }
-
-  @if (rowMenu(); as menu) {
-    <app-context-menu
-      [items]="menuItems()"
-      [at]="menu"
-      [heading]="menuHeading()"
-      label="Row actions"
-      (action)="runRowAction($event)"
-      (dismissed)="closeRowMenu()"
-    />
-  }
-
-  @if (isDragging()) {
+  @if (dragging()) {
     <div class="drop-overlay" aria-hidden="true">
-      <span>Drop the file to open it</span>
+      <span>{{ dropLabel() }}</span>
     </div>
   }
 
@@ -64,8 +29,8 @@
     <div class="toast" role="status">{{ message }}</div>
   }
 
-  @if (shortcutsOpen()) {
-    <div class="sheet-backdrop" (click)="shortcutsOpen.set(false)">
+  @if (shell.shortcutsOpen()) {
+    <div class="sheet-backdrop" (click)="shell.shortcutsOpen.set(false)">
       <div
         class="sheet"
         role="dialog"
@@ -79,7 +44,7 @@
             type="button"
             class="btn-icon"
             aria-label="Close"
-            (click)="shortcutsOpen.set(false)"
+            (click)="shell.shortcutsOpen.set(false)"
           >
             <app-icon name="close" />
           </button>
@@ -105,6 +70,10 @@
           <dd>Find — shadows the browser's own, which would only see the rendered rows</dd>
           <dt><kbd>Shift</kbd><kbd>F10</kbd></dt>
           <dd>Open the row's action menu</dd>
+          <dt><kbd>&larr;</kbd><kbd>&rarr;</kbd></dt>
+          <dd>On the tab bar: switch file</dd>
+          <dt><kbd>Delete</kbd></dt>
+          <dd>On the tab bar: close the file</dd>
         </dl>
       </div>
     </div>

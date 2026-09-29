@@ -227,14 +227,39 @@ async function shoot(cdp, name) {
   console.log(`  docs/images/${name}.png  ${(size / 1024).toFixed(0)} kB`);
 }
 
-/** Put a File into the picker, the way the browser would. */
-const loadFile = (json, fileName) => `
+/** Put Files into a picker, the way the browser would. */
+const pick = (selector, files) => `
   const dt = new DataTransfer();
-  dt.items.add(new File([${JSON.stringify(json)}], ${JSON.stringify(fileName)}, { type: 'application/json' }));
-  const input = document.querySelector('input[type=file]');
+  ${files
+    .map(
+      ([json, fileName]) =>
+        `dt.items.add(new File([${JSON.stringify(json)}], ${JSON.stringify(fileName)}, { type: 'application/json' }));`,
+    )
+    .join('\n  ')}
+  const input = document.querySelector(${JSON.stringify(selector)});
   input.files = dt.files;
   input.dispatchEvent(new Event('change', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 1200));
+  await new Promise(r => setTimeout(r, ${1200 * files.length}));
+`;
+
+/** Open a file through the toolbar's picker: on the landing screen, it takes the empty tab. */
+const loadFile = (json, fileName) =>
+  pick('.pane.is-active app-toolbar input[type=file]', [[json, fileName]]);
+
+/** Open files in new tabs through the same picker, then go back to the first tab. */
+const addTabs = (files) => `
+  ${pick('.pane.is-active app-toolbar input[type=file]', files)}
+  document.querySelector('[role=tablist] [role=tab]').click();
+  await new Promise(r => setTimeout(r, 300));
+`;
+
+/**
+ * Every tab stays mounted, so a bare query could land in a hidden one. `$` and
+ * `$$` look only inside the tab on screen.
+ */
+const scope = `
+  const $ = (selector) => document.querySelector('.pane.is-active ' + selector);
+  const $$ = (selector) => [...document.querySelectorAll('.pane.is-active ' + selector)];
 `;
 
 const settle = (ms = 400) => `await new Promise(r => setTimeout(r, ${ms}));`;
@@ -299,20 +324,27 @@ async function main() {
     await goto('dark');
     await shoot(cdp, 'empty');
 
-    // 2. The data view, deep in a record: pinned ancestors, breadcrumb, and the
-    //    hover cluster on a row.
+    // 2. The data view, deep in a record: pinned ancestors, breadcrumb, the
+    //    hover cluster on a row -- and two more months open in other tabs.
     await goto('dark');
     await run(cdp, loadFile(sample, 'telemetry-2026-09.json'));
     await run(
       cdp,
+      addTabs([
+        [sample, 'telemetry-2026-08.json'],
+        [sample, 'telemetry-2026-07.json'],
+      ]),
+    );
+    await run(
+      cdp,
       `
-      [...document.querySelectorAll('button[title]')]
-        .find(b => b.title.includes('Open everything')).click();
+      ${scope}
+      $$('button[title]').find(b => b.title.includes('Open everything')).click();
       ${settle(500)}
-      const vp = document.querySelector('.cdk-virtual-scroll-viewport');
+      const vp = $('.cdk-virtual-scroll-viewport');
       vp.scrollTop = 24 * 34;
       ${settle(450)}
-      const row = [...document.querySelectorAll('.viewport .row')]
+      const row = $$('.viewport .row')
         .find(r => r.querySelector('.jv-key')?.textContent.trim() === 'location');
       row?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
       ${settle(250)}

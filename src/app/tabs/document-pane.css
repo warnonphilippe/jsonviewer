@@ -1,0 +1,70 @@
+/* The host is created by NgComponentOutlet, outside the shell's template, so
+   the shell's encapsulated styles cannot reach it: it sizes itself. */
+:host {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* --- banner -------------------------------------------------------------- */
+
+.banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  font-size: var(--fs-md);
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.banner .btn-ghost {
+  color: var(--warn);
+}
+
+/* --- body ---------------------------------------------------------------- */
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  background: var(--bg);
+}
+
+.body > app-json-tree {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.centered {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  padding: 28px 24px;
+  overflow: auto;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 10px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

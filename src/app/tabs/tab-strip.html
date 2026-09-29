@@ -1,0 +1,44 @@
+<div class="strip">
+  <div #list class="tabs" role="tablist" aria-label="Open files" (keydown)="onKeydown($event)">
+    @for (tab of tabs.tabs(); track tab.id) {
+      @let active = tab.id === tabs.activeId();
+      <div
+        class="tab"
+        [class.is-active]="active"
+        (auxclick)="onAuxClick($event, tab.id)"
+        (mousedown)="$event.button === 1 && $event.preventDefault()"
+      >
+        <button
+          type="button"
+          role="tab"
+          class="tab-button"
+          [id]="'tab-' + tab.id"
+          [attr.aria-selected]="active"
+          [attr.aria-controls]="'tab-panel-' + tab.id"
+          [attr.tabindex]="active ? 0 : -1"
+          [title]="tooltipOf(tab)"
+          (click)="tabs.activate(tab.id)"
+        >
+          @if (tab.doc.isLoading()) {
+            <span class="tab-spinner" aria-hidden="true"></span>
+          } @else if (tab.doc.error()) {
+            <app-icon class="tab-error" name="warning" [size]="12" />
+          } @else {
+            <app-icon name="file" [size]="12" />
+          }
+          <span class="tab-name">{{ nameOf(tab) }}</span>
+        </button>
+        <button
+          type="button"
+          class="tab-close"
+          tabindex="-1"
+          aria-hidden="true"
+          title="Close the tab and free its memory"
+          (click)="tabs.close(tab.id)"
+        >
+          <app-icon name="close" [size]="10" />
+        </button>
+      </div>
+    }
+  </div>
+</div>

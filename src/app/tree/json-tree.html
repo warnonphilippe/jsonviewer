@@ -19,7 +19,7 @@
       *cdkVirtualFor="let row of rows(); let i = index; trackBy: trackByIndex"
       class="row"
       role="treeitem"
-      [id]="'tree-row-' + i"
+      [id]="rowIdPrefix + i"
       [attr.data-index]="i"
       [class.is-focused]="i === focusIndex()"
       [class.is-matched]="matched().has(i)"

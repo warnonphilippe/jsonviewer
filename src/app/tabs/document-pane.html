@@ -1,0 +1,54 @@
+<app-toolbar
+  (openFile)="open($event)"
+  (closeFile)="close()"
+  (showShortcuts)="shell.shortcutsOpen.set(true)"
+/>
+
+@if (doc.hasDocument()) {
+  <app-breadcrumb />
+}
+
+@if (store.truncated()) {
+  <div class="banner" role="status">
+    <app-icon name="warning" [size]="13" />
+    <span>
+      Stopped after {{ store.rows().length.toLocaleString() }} rows. A browser cannot scroll a list
+      taller than this reliably, so the rest is hidden.
+    </span>
+    <button type="button" class="btn-ghost" (click)="store.collapseAll()">Collapse all</button>
+  </div>
+}
+
+<div class="body">
+  @if (doc.isLoading()) {
+    <div class="centered">
+      <div class="spinner" aria-hidden="true"></div>
+      <p aria-live="polite">{{ phaseLabel() }}</p>
+    </div>
+  } @else if (doc.error(); as error) {
+    <div class="centered">
+      <app-error-panel [error]="error" (dismissed)="close()" />
+    </div>
+  } @else if (doc.hasDocument()) {
+    <app-json-tree (rowMenu)="openRowMenu($event)" />
+  } @else {
+    <div class="centered">
+      <app-empty-state />
+    </div>
+  }
+</div>
+
+@if (doc.hasDocument()) {
+  <app-status-bar />
+}
+
+@if (rowMenu(); as menu) {
+  <app-context-menu
+    [items]="menuItems()"
+    [at]="menu"
+    [heading]="menuHeading()"
+    label="Row actions"
+    (action)="runRowAction($event)"
+    (dismissed)="closeRowMenu()"
+  />
+}

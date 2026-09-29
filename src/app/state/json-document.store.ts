@@ -1,8 +1,9 @@
 /**
- * Owns the parsed document.
+ * Owns one tab's parsed document.
  *
- * This is the only place the parsed graph lives, and the only async boundary in
- * the application. Everything downstream reads `root()` synchronously.
+ * There is one per tab (see `TabsStore`), and it is the only place that tab's
+ * parsed graph lives, and the only place a file is read. Everything downstream
+ * reads `root()` synchronously.
  *
  * If a future requirement ever justifies moving the data into a Web Worker,
  * only this file changes: `open()` becomes a postMessage round trip and the
@@ -10,7 +11,7 @@
  * (parse is ~70ms, schema ~50ms), but the seam costs nothing to keep.
  */
 
-import { Injectable, computed, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { SchemaNode, allSchemaNodes, buildSchema } from '../core/schema';
 import {
   DocumentFormat,
@@ -38,9 +39,11 @@ export interface DocumentMeta {
   readonly schemaMs: number;
 }
 
-@Injectable({ providedIn: 'root' })
+/** Provided per tab, never at the root: see `TabsStore`. */
+@Injectable()
 export class JsonDocumentStore {
   private readonly _phase = signal<LoadPhase>('idle');
+  private readonly _fileName = signal('');
   private readonly _root = signal<unknown>(undefined);
   private readonly _schema = signal<SchemaNode | null>(null);
   private readonly _meta = signal<DocumentMeta | null>(null);
@@ -52,6 +55,9 @@ export class JsonDocumentStore {
   readonly meta = this._meta.asReadonly();
   readonly error = this._error.asReadonly();
 
+  /** Set as soon as a load starts, so a tab is named while it loads or fails. */
+  readonly fileName = this._fileName.asReadonly();
+
   readonly isLoading = computed(() => {
     const phase = this._phase();
     return phase === 'reading' || phase === 'parsing' || phase === 'analyzing';
@@ -62,15 +68,31 @@ export class JsonDocumentStore {
     return meta ? describeSize(meta.byteSize) : '';
   });
 
+  /**
+   * Bumped by every close, so a load that was overtaken -- by a close, by the
+   * next file, or by the tab being torn down -- knows to drop its result.
+   */
+  private generation = 0;
+
+  constructor() {
+    // Closing the tab destroys its injector; release the graph with it.
+    inject(DestroyRef).onDestroy(() => this.close());
+  }
+
   /** Read and parse a file. The source file is only ever read, never written. */
   async open(file: File): Promise<void> {
-    // Drop the previous document before parsing the next one: holding two
-    // graphs at once is how a tab runs out of memory unrecoverably.
+    // Drop the previous document before parsing its replacement: holding both
+    // graphs at once, on top of the new file's text, is how the page runs out
+    // of memory unrecoverably.
     this.close();
+    const generation = this.generation;
+    this._fileName.set(file.name);
     this._phase.set('reading');
     await nextPaint();
+    if (generation !== this.generation) return;
 
     const outcome = await loadJsonFile(file);
+    if (generation !== this.generation) return;
     if (!outcome.ok) {
       this._error.set(outcome.error);
       this._phase.set('error');
@@ -79,6 +101,7 @@ export class JsonDocumentStore {
 
     this._phase.set('analyzing');
     await nextPaint();
+    if (generation !== this.generation) return;
 
     const schemaStarted = performance.now();
     const schema = buildSchema(outcome.value);
@@ -103,6 +126,8 @@ export class JsonDocumentStore {
 
   /** Release the document, so its memory can be reclaimed. */
   close(): void {
+    this.generation++;
+    this._fileName.set('');
     this._root.set(undefined);
     this._schema.set(null);
     this._meta.set(null);

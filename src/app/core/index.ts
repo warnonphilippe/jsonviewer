@@ -12,3 +12,4 @@ export * from './scroll-limits';
 export * from './sticky';
 export * from './scroll-plan';
 export * from './place-menu';
+export * from './tab-order';

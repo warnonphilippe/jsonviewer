@@ -258,6 +258,16 @@ describe('needsSizeWarning', () => {
     expect(needsSizeWarning(fakeFile(SOFT_WARN_BYTES))).toBe(false);
     expect(needsSizeWarning(fakeFile(SOFT_WARN_BYTES + 1))).toBe(true);
   });
+
+  it('counts what the other tabs already hold', () => {
+    const half = SOFT_WARN_BYTES / 2;
+    expect(needsSizeWarning(fakeFile(half), half)).toBe(false);
+    expect(needsSizeWarning(fakeFile(half + 1), half)).toBe(true);
+  });
+
+  it('warns about a small file when the open ones are already past the threshold', () => {
+    expect(needsSizeWarning(fakeFile(1), SOFT_WARN_BYTES)).toBe(true);
+  });
 });
 
 describe('describeSize', () => {

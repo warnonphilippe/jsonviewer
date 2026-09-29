@@ -57,7 +57,7 @@ export interface MenuItem {
       class="menu"
       role="menu"
       [attr.aria-label]="label()"
-      [style.visibility]="placed() ? 'visible' : 'hidden'"
+      [style.visibility]="placed() ? null : 'hidden'"
       (keydown)="onKeydown($event)"
     >
       @if (heading(); as text) {
@@ -108,7 +108,11 @@ export class ContextMenu {
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly menu = viewChild.required<ElementRef<HTMLElement>>('menu');
 
-  /** Hidden until measured, so it never flashes at the wrong place. */
+  /**
+   * Hidden until measured, so it never flashes at the wrong place. Once placed
+   * the menu inherits its visibility rather than forcing `visible`, which would
+   * let it show through a hidden background tab.
+   */
   protected readonly placed = signal(false);
 
   constructor() {

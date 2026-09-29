@@ -9,7 +9,7 @@
  * or the other by narrowing `color-scheme`, which is exactly what
  * `App.cycleTheme()` already sets and removes.
  *
- * The primitives (.btn, .seg, .chip, .field, .menu, .kbd, .jv-*) live here
+ * The primitives (.btn, .seg, .field, .menu, .kbd, .jv-*) live here
  * rather than in component stylesheets on purpose: a component stylesheet is
  * capped at 4 kB by the `anyComponentStyle` budget in angular.json, and these
  * rules are consumed by five components each.
@@ -260,18 +260,7 @@ app-root {
   cursor: default;
 }
 
-/* --- chip (the file identity in the toolbar) ---------------------------- */
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 27px;
-  padding: 0 5px 0 9px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
+/* --- separator (inside a field) ---------------------------------------- */
 
 .chip-sep {
   width: 1px;

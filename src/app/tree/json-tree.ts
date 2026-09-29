@@ -20,6 +20,13 @@ import { JsonDocumentStore } from '../state/json-document.store';
 import { NodeActions } from '../state/node-actions';
 import { AppIcon } from '../ui/icon';
 
+/**
+ * Keeps one tree's row ids apart from another's. Every tab has a tree, and the
+ * inactive ones stay mounted, so a bare `tree-row-12` would exist once per tab
+ * -- and `aria-activedescendant` would point at whichever came first.
+ */
+let nextTreeId = 0;
+
 /** A request to open the row menu, raised by right-click or Shift+F10. */
 export interface RowMenuRequest {
   readonly index: number;
@@ -70,6 +77,7 @@ export class JsonTree {
   readonly rowMenu = output<RowMenuRequest>();
 
   protected readonly rowHeight = ROW_HEIGHT;
+  protected readonly rowIdPrefix = `tree-${nextTreeId++}-row-`;
   protected readonly rows = this.store.rows;
   protected readonly focusIndex = this.store.focusIndex;
   protected readonly matched = this.store.matchedRows;
@@ -94,7 +102,7 @@ export class JsonTree {
 
   protected readonly activeId = computed(() => {
     const index = this.focusIndex();
-    return index >= 0 ? `tree-row-${index}` : null;
+    return index >= 0 ? `${this.rowIdPrefix}${index}` : null;
   });
 
   protected readonly ariaLabel = computed(() =>
@@ -317,7 +325,7 @@ export class JsonTree {
 
   /** Open the row menu from the keyboard, anchored on the focused row. */
   private openMenuForFocus(index: number): void {
-    const element = document.getElementById(`tree-row-${index}`);
+    const element = document.getElementById(`${this.rowIdPrefix}${index}`);
     const rect = element?.getBoundingClientRect();
     this.rowMenu.emit({
       index,

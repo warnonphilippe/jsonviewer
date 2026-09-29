@@ -32,7 +32,8 @@ export type NodeActionId =
  * its context menu -- and they must not drift apart. Each surface decides what
  * to show; none of them decides what an action *means*.
  */
-@Injectable({ providedIn: 'root' })
+/** Provided per tab, never at the root: see `TabsStore`. */
+@Injectable()
 export class NodeActions {
   private readonly store = inject(ViewerStore);
   private readonly toast = inject(ToastStore);
