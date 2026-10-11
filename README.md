@@ -417,9 +417,11 @@ than a second process, which would find the profile locked and could not save
 the theme.
 
 Electron is installed in `desktop/node_modules` on its own, so neither the
-Angular project nor the image depends on it. `npm start` in `desktop/` runs
-the window without packaging it, on `desktop/app/` — the copy of the build that
-the last `build.sh` left there. The icons are generated from `desktop/icon.svg`
+Angular project nor the image depends on it. To run the window without
+packaging it, use `./desktop/start.sh`: it rebuilds the viewer into
+`desktop/app/` when that copy is missing or older than `src/`, then opens the
+window (`--build` forces the rebuild). `npm start` in `desktop/` does the same
+without the rebuild check. The icons are generated from `desktop/icon.svg`
 by `desktop/icons.sh`.
 
 ### Checking against a real large file
